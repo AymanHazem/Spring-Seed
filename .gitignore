@@ -1,0 +1,19 @@
+# ── Build outputs ──────────────────────────
+target/
+
+# ── IDE files ──────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.class
+
+# ── Environment & secrets ──────────────────
+.env
+!.env.example
+
+# ── OS files ───────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Cache ──────────────────────────────────
+~/.cache/spring-init/
