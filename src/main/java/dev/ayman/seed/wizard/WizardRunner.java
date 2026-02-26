@@ -183,15 +183,40 @@ public class WizardRunner
 
 private void printBanner() {
         out.println();
-        out.println(ansi().bold().fgBrightGreen().a("  ███████╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗    ███████╗███████╗███████╗██████╗ ").reset());
-        out.println(ansi().bold().fgBrightGreen().a("  ██╔════╝██╔══██╗██╔══██╗██║████╗  ██║██╔════╝    ██╔════╝██╔════╝██╔════╝██╔══██╗").reset());
-        out.println(ansi().bold().fgBrightGreen().a("  ███████╗██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗   ███████╗█████╗  █████╗  ██║  ██║").reset());
-        out.println(ansi().bold().fgBrightGreen().a("  ╚════██║██╔═══╝ ██╔══██╗██║██║╚██╗██║██║   ██║   ╚════██║██╔══╝  ██╔══╝  ██║  ██║").reset());
-        out.println(ansi().bold().fgBrightGreen().a("  ███████║██║     ██║  ██║██║██║ ╚████║╚██████╔╝   ███████║███████╗███████╗██████╔╝").reset());
-        out.println(ansi().bold().fgBrightGreen().a("  ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝    ╚══════╝╚══════╝╚══════╝╚═════╝ ").reset());
+        out.println(ansi().bold().fgBrightGreen().a(
+                "   ███████╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ███████╗███████╗███████╗██████╗ "
+        ).reset());
+        out.println(ansi().bold().fgBrightGreen().a(
+                "   ██╔════╝██╔══██╗██╔══██╗██║████╗  ██║██╔════╝     ██╔════╝██╔════╝██╔════╝██╔══██╗"
+        ).reset());
+        out.println(ansi().bold().fgBrightGreen().a(
+                "   ███████╗██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗    ███████╗█████╗  █████╗  ██║  ██║"
+        ).reset());
+        out.println(ansi().bold().fgBrightGreen().a(
+                "   ╚════██║██╔═══╝ ██╔══██╗██║██║╚██╗██║██║   ██║    ╚════██║██╔══╝  ██╔══╝  ██║  ██║"
+        ).reset());
+        out.println(ansi().bold().fgBrightGreen().a(
+                "   ███████║██║     ██║  ██║██║██║ ╚████║╚██████╔╝    ███████║███████╗███████╗██████╔╝"
+        ).reset());
+        out.println(ansi().bold().fgBrightGreen().a(
+                "   ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚══════╝╚══════╝╚══════╝╚═════╝ "
+        ).reset());
+
         out.println();
-        out.println(ansi().fgBrightBlack().a("           Seed Your Spring Projects faster 🌱! — Powered By start.spring.io").reset());
-        out.println();
+
+        // Decorative separator
+        out.println(ansi().fgBrightBlack().a(
+                "   ───────────────────────────────────────────────────────────────────────────────"
+        ).reset());
+
+        out.println(ansi().bold().fgGreen().a(
+                "                        Seed Your Spring Projects faster \uD83C\uDF31!"
+        ).reset());
+
+//        out.println(ansi().fgBrightBlack().a(
+//                "                       Powered by start.spring.io"
+//        ).reset());
+
 }
 
         private void printStep(int num, String label) {
