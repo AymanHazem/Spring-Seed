@@ -1,33 +1,26 @@
 package dev.ayman.seed.wizard;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Holds all user-selected configuration options for the Spring Boot project.
  * This is the data object passed from the wizard to the generator.
  */
-public class ProjectConfig {
+public class ProjectConfig
+{
 
-    private String type; // e.g. "maven-project"
-    private String language; // e.g. "java"
-    private String bootVersion; // e.g. "4.0.3.RELEASE"
-    private String groupId; // e.g. "com.example"
-    private String artifactId; // e.g. "demo"
-    private String name; // e.g. "demo"
-    private String description; // e.g. "Demo project for Spring Boot"
-    private String packageName; // e.g. "com.example.demo"
-    private String packaging; // "jar" or "war"
-    private String javaVersion; // "21", "17", etc.
-    private String version; // "0.0.1-SNAPSHOT"
+    private String type;
+    private String language;
+    private String bootVersion;
+    private String groupId;
+    private String artifactId;
+    private String name;
+    private String description;
+    private String packageName;
+    private String packaging;
+    private String javaVersion;
+    private String version;
     private List<String> dependencies = new ArrayList<>();
 
-    private boolean createEnvFiles;
-    private boolean useYaml;
-    private boolean initGit;
-    private String outputDirectory;
-
-    // ── Getters & Setters ──────────────────────────────────────────────────
 
     public String getType() {
         return type;
@@ -45,9 +38,7 @@ public class ProjectConfig {
         this.language = language;
     }
 
-    public String getBootVersion() {
-        return bootVersion;
-    }
+    public String getBootVersion() {return bootVersion;}
 
     public void setBootVersion(String bootVersion) {
         this.bootVersion = bootVersion;
@@ -125,40 +116,19 @@ public class ProjectConfig {
         this.dependencies = dependencies;
     }
 
-    public boolean isCreateEnvFiles() {
-        return createEnvFiles;
-    }
 
-    public void setCreateEnvFiles(boolean createEnvFiles) {
-        this.createEnvFiles = createEnvFiles;
-    }
+    public void setCreateEnvFiles(boolean createEnvFiles) {}
 
-    public boolean isUseYaml() {
-        return useYaml;
-    }
+    public void setUseYaml(boolean useYaml) {}
 
-    public void setUseYaml(boolean useYaml) {
-        this.useYaml = useYaml;
-    }
+    public void setInitGit(boolean initGit) {}
 
-    public boolean isInitGit() {
-        return initGit;
-    }
 
-    public void setInitGit(boolean initGit) {
-        this.initGit = initGit;
-    }
-
-    public String getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    public void setOutputDirectory(String outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
+    public void setOutputDirectory(String outputDirectory) {}
 
     /** Derive package name from groupId + artifactId (replaces hyphens). */
-    public String derivePackageName() {
+    public String derivePackageName()
+    {
         String safe = (artifactId == null ? "" : artifactId).replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
         return (groupId == null ? "com.example" : groupId) + "." + safe;
     }

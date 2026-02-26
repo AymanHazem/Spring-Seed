@@ -1,7 +1,6 @@
 package dev.ayman.seed.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProjectType
@@ -14,7 +13,6 @@ public class ProjectType
 
     @JsonProperty("description")
     private String description;
-
 
     @JsonProperty("tags")
     private Map<String, String> tags;

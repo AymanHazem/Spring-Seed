@@ -1,11 +1,9 @@
 package dev.ayman.seed.model;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Option {
-
+public class Option
+{
     @JsonProperty("id")
     private String id;
 
@@ -15,7 +13,8 @@ public class Option {
     public String getId() { return id; }
     public String getName() { return name; }
 
-    public boolean isUnstable() {
+    public boolean isUnstable()
+    {
         String lower = id == null ? "" : id.toLowerCase();
         return lower.contains("snapshot") || lower.contains(".m");
     }

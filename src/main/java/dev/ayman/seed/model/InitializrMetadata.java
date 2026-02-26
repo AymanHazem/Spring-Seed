@@ -1,14 +1,11 @@
 package dev.ayman.seed.model;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InitializrMetadata
 {
-
     @JsonProperty("type")
     private SelectGroup<ProjectType> type;
 
@@ -59,7 +56,8 @@ public class InitializrMetadata
     public DependencyGroups getDependencies() { return dependencies; }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class SelectGroup<T> {
+    public static class SelectGroup<T>
+    {
         @JsonProperty("default")
         private String defaultValue;
         @JsonProperty("values")
@@ -70,7 +68,8 @@ public class InitializrMetadata
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class DependencyGroups {
+    public static class DependencyGroups
+    {
         @JsonProperty("values")
         private List<DependencyGroup> values;
 
@@ -78,7 +77,8 @@ public class InitializrMetadata
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class TextDefault {
+    public static class TextDefault
+    {
         @JsonProperty("default")
         private String defaultValue;
 

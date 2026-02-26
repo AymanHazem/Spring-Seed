@@ -1,12 +1,9 @@
 package dev.ayman.seed.model;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Dependency
 {
-
     @JsonProperty("id")
     private String id;
 
@@ -15,9 +12,6 @@ public class Dependency
 
     @JsonProperty("description")
     private String description;
-
-    @JsonProperty("versionRange")
-    private String versionRange;
 
     private String category;
 
@@ -31,10 +25,6 @@ public class Dependency
 
     public String getDescription() {
         return description;
-    }
-
-    public String getVersionRange() {
-        return versionRange;
     }
 
     public String getCategory() {

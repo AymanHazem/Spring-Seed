@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.fusesource.jansi.Ansi.ansi;
-
 public class WizardRunner
 {
         private final MetadataService metadataService;
@@ -181,7 +180,8 @@ public class WizardRunner
                 return flat;
         }
 
-private void printBanner() {
+private void printBanner()
+{
         out.println();
         out.println(ansi().bold().fgBrightGreen().a(
                 "   ███████╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ███████╗███████╗███████╗██████╗ "
@@ -213,24 +213,23 @@ private void printBanner() {
                 "                        Seed Your Spring Projects faster \uD83C\uDF31!"
         ).reset());
 
-//        out.println(ansi().fgBrightBlack().a(
-//                "                       Powered by start.spring.io"
-//        ).reset());
-
 }
 
-        private void printStep(int num, String label) {
+        private void printStep(int num, String label)
+        {
                 out.println();
                 out.println(ansi().bold().fgBrightCyan()
                                 .a("  ┌── Step " + num + ": " + label + " ").reset());
         }
 
-        private void printConfirm(String label, String value) {
+        private void printConfirm(String label, String value)
+        {
                 out.println(ansi().fgBrightGreen()
                                 .a("  ✔ " + label + ": ").bold().a(value).reset());
         }
 
-        private void printSummary(ProjectConfig config, Path target) {
+        private void printSummary(ProjectConfig config, Path target)
+        {
                 out.println();
                 out.println(ansi().bold().fgBrightGreen().a(
                                 "  ╔══════════════════════════════════════════════╗").reset());
@@ -246,15 +245,11 @@ private void printBanner() {
                 out.println(ansi().fgBrightCyan().a("  Group      : ").reset().a(config.getGroupId()));
                 out.println(ansi().fgBrightCyan().a("  Artifact   : ").reset().a(config.getArtifactId()));
                 out.println(ansi().fgBrightCyan().a("  Java       : ").reset().a(config.getJavaVersion()));
-                if (!config.getDependencies().isEmpty()) {
+                if (!config.getDependencies().isEmpty())
+                {
                         out.println(ansi().fgBrightCyan().a("  Dependencies       : ").reset()
                                         .a(String.join(", ", config.getDependencies())));
                 }
-                out.println();
-                out.println(ansi().fgBrightBlack().a("  Next steps:").reset());
-                out.println(ansi().fgBrightBlack()
-                                .a("    cd " + target.getFileName()).reset());
-                out.println(ansi().fgBrightBlack().a("    mvn spring-boot:run   # or ./gradlew bootRun").reset());
                 out.println();
                 out.println(ansi().bold().fgBrightGreen().a("  Happy coding!").reset());
                 out.println();

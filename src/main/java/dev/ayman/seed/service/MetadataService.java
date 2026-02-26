@@ -1,5 +1,4 @@
 package dev.ayman.seed.service;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.ayman.seed.model.InitializrMetadata;
 
@@ -12,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-
 /**
  * Fetches the Spring Initializr metadata from start.spring.io and caches it
  * locally.
@@ -42,7 +40,6 @@ public class MetadataService
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
-
 
     //Returns cached metadata if fresh, otherwise fetches from the API.
     //param forceRefresh bypass cache and fetch fresh data

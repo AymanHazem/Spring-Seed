@@ -14,14 +14,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 /**
  * Downloads a project ZIP from start.spring.io and extracts it to the target
  * directory.
  */
 public class ProjectGeneratorService
 {
-
     private static final String BASE_URL = "https://start.spring.io/starter.zip";
 
     private final HttpClient httpClient;
@@ -104,7 +102,6 @@ public class ProjectGeneratorService
                 if (!resolved.startsWith(canonicalTarget))
                     throw new IOException("Zip slip attack detected: " + entry.getName());
 
-
                 if (entry.isDirectory())
                     Files.createDirectories(resolved);
                 else
@@ -132,7 +129,6 @@ public class ProjectGeneratorService
         String bootVersion = config.getBootVersion();
 
         // If the parent version was generated as e.g. 4.0.3.RELEASE, normalize it
-        // to 4.0.3 to match the modern Spring Boot version style.
         if (bootVersion != null && bootVersion.endsWith(".RELEASE"))
         {
             String normalized = bootVersion.substring(0, bootVersion.length() - ".RELEASE".length());
