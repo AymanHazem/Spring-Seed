@@ -21,7 +21,7 @@ Built as a single GraalVM native binary, Spring Seed starts instantly and runs a
 |---|---|
 | **Interactive Wizard** | Step-by-step TUI guides you through project type, language, Spring Boot version, metadata, packaging, and Java version. |
 | **Fuzzy Dependency Search** | Real-time fuzzy matching across the full Spring Initializr dependency catalog. Type to search, number to toggle. |
-| **Live Metadata** | Always up-to-date — fetches live metadata from `start.spring.io` with intelligent local caching (1-hour TTL). |
+| **Live Metadata** | Always up-to-date - fetches live metadata from `start.spring.io` with intelligent local caching (1-hour TTL). |
 | **YAML Config** | Optionally generates `application.yml` instead of `.properties`, normalized on disk. |
 | **`.env` Bootstrapping** | Generates `.env` and `.env.example` files with auto-patched `spring.config.import` for seamless environment management. |
 | **Git Ready** | One-step `git init` + initial commit so your project is version-controlled from the start. |
