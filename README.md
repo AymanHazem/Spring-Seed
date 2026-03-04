@@ -49,7 +49,8 @@ Built as a single GraalVM native binary, Spring Seed starts instantly and runs a
 git clone https://github.com/AymanHazem/Spring-Seed.git
 cd Spring-Seed
 
-# 2. Build the native binary (requires GraalVM JDK 25 + native-image)
+# 2. Build the native binary (requires GraalVM JDK 25 + native-image).
+# Sorry You will wait (5 to 10 minutes )
 mvn -Pnative clean package
 
 # 3. Install globally
