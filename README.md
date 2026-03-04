@@ -66,40 +66,8 @@ seed --version
 
 ---
 
-## Usage
-
-### Launch the Interactive Wizard
-
-```bash
-seed
-```
-
-This starts the full guided experience:
-
-```
-   ███████╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ███████╗███████╗███████╗██████╗
-   ██╔════╝██╔══██╗██╔══██╗██║████╗  ██║██╔════╝     ██╔════╝██╔════╝██╔════╝██╔══██╗
-   ███████╗██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗    ███████╗█████╗  █████╗  ██║  ██║
-   ╚════██║██╔═══╝ ██╔══██╗██║██║╚██╗██║██║   ██║    ╚════██║██╔══╝  ██╔══╝  ██║  ██║
-   ███████║██║     ██║  ██║██║██║ ╚████║╚██████╔╝    ███████║███████╗███████╗██████╔╝
-   ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚══════╝╚══════╝╚══════╝╚═════╝
-```
-
-The wizard walks you through these steps:
-
-| Step | What You Choose |
-|---|---|
-| 1 | **Project Type** — Maven or Gradle |
-| 2 | **Language** — Java, Kotlin, or Groovy |
-| 3 | **Spring Boot Version** — latest stable or snapshot |
-| 4 | **Dependencies** — fuzzy search & multi-select |
-| 5 | **Project Metadata** — group, artifact, name, description, package |
-| 6 | **Packaging** — JAR or WAR |
-| 7 | **Java Version** — 17, 21, 25, etc. |
-| 8 | **Output Directory** — where to scaffold the project |
-| 9 | **Config Format** — YAML or Properties |
-| 10 | **`.env` Files** — generate environment templates |
-| 11 | **Git Init** — initialize a repository with first commit |
+## Demo
+https://github.com/user-attachments/assets/5fcc9d53-3d83-452a-86fc-dced7e001a88
 
 ### CLI Options
 
@@ -110,28 +78,7 @@ seed --version       # Print version
 seed --help          # Show help
 ```
 
-### Dependency Search
 
-The dependency selector supports real-time fuzzy search across the entire Spring Initializr catalog:
-
-```
-  ╔══════════════════════════════════════════╗
-  ║      Dependency Search & Selection       ║
-  ╚══════════════════════════════════════════╝
-  Type to search  │  [number] to toggle  │  [Enter] to finish
-
-  ─────────────────────────────────────────────────────────
-   1.  ✔ Spring Web [web] · Web
-       Build web, including RESTful, applications using Spring MVC…
-   2.  ○ Spring Data JPA [data-jpa] · SQL
-       Persist data in SQL stores with Java Persistence API…
-   3.  ○ Lombok [lombok] · Developer Tools
-       Java annotation library which helps to reduce boilerplate code…
-  ─────────────────────────────────────────────────────────
-  Selected:  web
-
-  Search: _
-```
 
 **Controls:**
 - Type to filter results in real time
