@@ -176,16 +176,6 @@ dev.ayman.seed
     └── GitInitializer.java         # git init + initial commit
 ```
 
-### Tech Stack
-
-| Layer | Technology |
-|---|---|
-| CLI framework | [Picocli](https://picocli.info/) |
-| Terminal UI | [Lanterna](https://github.com/mabe02/lanterna) |
-| JSON parsing | [Jackson](https://github.com/FasterXML/jackson) |
-| ANSI colors | [Jansi](https://github.com/fusesource/jansi) |
-| Native compilation | [GraalVM Native Image](https://www.graalvm.org/native-image/) |
-| Language | Java 25 |
 
 ---
 
