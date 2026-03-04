@@ -25,7 +25,6 @@ Built as a single GraalVM native binary, Spring Seed starts instantly and runs a
 | **YAML Config** | Optionally generates `application.yml` instead of `.properties`, normalized on disk. |
 | **`.env` Bootstrapping** | Generates `.env` and `.env.example` files with auto-patched `spring.config.import` for seamless environment management. |
 | **Git Ready** | One-step `git init` + initial commit so your project is version-controlled from the start. |
-| **GraalVM Native Image** | Ships as a single, ahead-of-time compiled binary — instant startup, zero JVM overhead. |
 | **Cross-platform** | Runs on Linux, macOS, and Windows (via WSL). |
 
 ---
@@ -33,11 +32,9 @@ Built as a single GraalVM native binary, Spring Seed starts instantly and runs a
 ## Quick Start
 
 ### Prerequisites
+-  Linux / macOS / WSL
+-  Internet access
 
-| Requirement | Why |
-|---|---|
-| Linux / macOS / WSL | Supported platforms |
-| Internet access | Fetches metadata & project ZIP from `start.spring.io` |
 
 > [!NOTE]
 > Spring Seed does not have an official release yet. For now, you need to build from source.
