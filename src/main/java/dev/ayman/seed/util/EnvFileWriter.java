@@ -11,20 +11,29 @@ import java.util.stream.Collectors;
  */
 public class EnvFileWriter
 {
-    private static final String ENV_CONTENT = "# Environment variables for local development\n" +
-            "# This file is excluded from version control — never commit secrets!\n\n" +
-            "# Example:\n" +
-            "# DATABASE_URL=jdbc:postgresql://localhost:5432/mydb\n" +
-            "# DATABASE_USERNAME=myuser\n" +
-            "# DATABASE_PASSWORD=secret\n";
+    private static final String ENV_CONTENT = """
+            # Environment variables for local development
+            # This file is excluded from version control — never commit secrets!
+            
+            # Example:
+            # DATABASE_URL=jdbc:postgresql://localhost:5432/mydb
+            # DATABASE_USERNAME=myuser
+            # DATABASE_PASSWORD=secret
+            """;
 
-    private static final String ENV_EXAMPLE_CONTENT = "# Copy this file to .env and fill in the values\n\n" +
-            "# DATABASE_URL=jdbc:postgresql://localhost:5432/mydb\n" +
-            "# DATABASE_USERNAME=myuser\n" +
-            "# DATABASE_PASSWORD=secret\n";
+    private static final String ENV_EXAMPLE_CONTENT = """
+            # Copy this file to .env and fill in the values
+            
+            # DATABASE_URL=jdbc:postgresql://localhost:5432/mydb
+            # DATABASE_USERNAME=myuser
+            # DATABASE_PASSWORD=secret
+            """;
 
-    private static final String SPRING_CONFIG_IMPORT = "\n# Load .env file as optional external configuration\n" +
-            "spring.config.import=optional:file:.env[.properties]\n";
+    private static final String SPRING_CONFIG_IMPORT = """
+            
+            # Load .env file as optional external configuration
+            spring.config.import=optional:file:.env[.properties]
+            """;
 
     private static final String SPRING_CONFIG_IMPORT_YAML = "\nspring:\n  config:\n    import: 'optional:file:.env[.properties]'\n";
 
@@ -144,10 +153,10 @@ public class EnvFileWriter
      * so calling patchSpringConfig repeatedly (e.g. re-running the wizard
      * against the same output directory) doesn't keep duplicating the block.
      */
-    private static void appendIfMissing(Path file, String block, String marker) throws IOException
+    private static void appendIfMissing(Path file, String block) throws IOException
     {
         String existing = Files.readString(file);
-        if (existing.contains(marker))
+        if (existing.contains("spring.config.import"))
             return;
         Files.writeString(file, block, StandardOpenOption.APPEND);
     }
@@ -180,12 +189,12 @@ public class EnvFileWriter
         // to avoid creating both YAML and .properties in a fresh project.
         if (Files.exists(yaml))
         {
-            appendIfMissing(yaml, SPRING_CONFIG_IMPORT_YAML, "spring.config.import");
+            appendIfMissing(yaml, SPRING_CONFIG_IMPORT_YAML);
             return;
         }
         if (Files.exists(props))
         {
-            appendIfMissing(props, SPRING_CONFIG_IMPORT, "spring.config.import");
+            appendIfMissing(props, SPRING_CONFIG_IMPORT);
             return;
         }
 

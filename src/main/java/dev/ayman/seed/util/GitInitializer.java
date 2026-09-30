@@ -1,6 +1,8 @@
 package dev.ayman.seed.util;
 import java.io.IOException;
 import java.nio.file.Path;
+
+import static java.lang.ProcessBuilder.Redirect.DISCARD;
 /**
  * Initializes a git repository in a project directory and creates an initial
  * commit.
@@ -27,8 +29,8 @@ public class GitInitializer
     {
         ProcessBuilder pb = new ProcessBuilder(command)
                 .directory(dir.toFile())
-                .redirectErrorStream(true)
-                .inheritIO();
+                .redirectOutput(DISCARD)
+                .redirectError(DISCARD);
 
         Process process = pb.start();
         int exitCode = process.waitFor();

@@ -39,7 +39,8 @@ public class MetadataForm
         String artifactId = prompt("  Artifact       ", artifactDefault);
         config.setArtifactId(artifactId.isBlank() ? artifactDefault : artifactId);
 
-        String name = prompt("  Name           ", config.getArtifactId());
+        String name = prompt("  Application" +
+                " Name           ", config.getArtifactId());
         config.setName(name.isBlank() ? config.getArtifactId() : name);
 
         String descriptionDefault = optionalDefault(meta.getDescription());

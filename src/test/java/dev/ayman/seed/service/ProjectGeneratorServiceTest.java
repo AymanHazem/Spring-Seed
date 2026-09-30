@@ -37,6 +37,19 @@ class ProjectGeneratorServiceTest {
     }
 
     @Test
+    void extractZipCreatesProjectInsideNonEmptyParentWithoutChangingExistingFiles(@TempDir Path parent) throws Exception {
+        Path existingFile = parent.resolve("pom.xml");
+        Files.writeString(existingFile, "Existing parent file");
+        Path target = parent.resolve("hazem");
+        byte[] zip = zipWithSingleFile("pom.xml", "<project>generated</project>");
+
+        new ProjectGeneratorService().extractZip(zip, target);
+
+        assertEquals("<project>generated</project>", Files.readString(target.resolve("pom.xml")));
+        assertEquals("Existing parent file", Files.readString(existingFile));
+    }
+
+    @Test
     void extractZipRefusesToOverwriteNonEmptyTargetDirectory(@TempDir Path tempDir) throws Exception {
         // Regression test for Rank 5: extracting into a directory that already has
         // unrelated content must not silently overwrite it.

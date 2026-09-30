@@ -96,34 +96,31 @@ public class WizardRunner
 
             // ── Step 8: Output directory ──────────────────────────────────
             printStep(8, "Output Directory");
-            Path outputPath;
+            Path outputPath = resolveOutputDirectory(requestedOutputPath, config.getArtifactId());
             if (requestedOutputPath != null)
             {
-                outputPath = requestedOutputPath.toAbsolutePath().normalize();
                 printConfirm("Output directory", outputPath.toString());
             }
             else
             {
-                outputPath = Path.of(System.getProperty("user.home"), config.getArtifactId())
-                                .toAbsolutePath().normalize();
                 out.println(ansi().fgBrightYellow()
                                 .a("  Project will be created in your home directory: " + outputPath)
                                 .reset());
             }
             config.setOutputDirectory(outputPath.toString());
 
-            // ── Step 9: Config format ─────────────────────────────────────
+
             config.setUseYaml(prompt.askYesNo("Use YAML (application.yml) instead of .properties?"));
 
-            // ── Step 10: .env files ───────────────────────────────────────
+
             config.setCreateEnvFiles(prompt.askYesNo("Create .env and .env.example files?"));
 
-            // ── Step 11: Git init ─────────────────────────────────────────
+
             config.setInitGit(prompt.askYesNo("Initialize a git repository?"));
 
-            // ── Generate project ──────────────────────────────────────────
+
             out.println();
-            out.print(ansi().fgBrightBlack().a("  ⟳ Generating project from start.spring.io...").reset());
+            out.print(ansi().fgBrightBlack().a("  ⟳ Generating project from start.spring.io...\n").reset());
             out.flush();
 
             Path target = Path.of(config.getOutputDirectory()).toAbsolutePath();
@@ -143,7 +140,7 @@ public class WizardRunner
             }
 
             if (config.isInitGit()) {
-                out.print(ansi().fgBrightBlack().a("  ⟳ Initializing git repository...").reset());
+                out.print(ansi().fgBrightBlack().a("  ⟳ Initializing git repository...\n").reset());
                 out.flush();
                 GitInitializer.init(target);
                 out.println(ansi().cursorUpLine().eraseLine()
@@ -155,6 +152,16 @@ public class WizardRunner
         } finally {
             AnsiConsole.systemUninstall();
         }
+    }
+
+    static Path resolveOutputDirectory(Path requestedParent, String artifactId)
+    {
+        if (artifactId == null || artifactId.isBlank() || artifactId.equals(".") || artifactId.equals("..")
+                        || artifactId.contains("/") || artifactId.contains("\\"))
+            throw new IllegalArgumentException("Artifact must be a single directory name, without path separators.");
+
+        Path parent = requestedParent != null ? requestedParent : Path.of(System.getProperty("user.home"));
+        return parent.resolve(artifactId).toAbsolutePath().normalize();
     }
 
     /**

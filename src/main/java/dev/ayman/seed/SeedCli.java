@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
  * Usage:
  * seed — runs the interactive wizard
  * seed --refresh — re-fetches metadata ignoring cache
- * seed -p /path/to/project — saves the generated project at the given path
+ * seed -p /path/to/parent — creates an artifact-named project folder inside the given path
  * seed --version — prints version
  * seed --help — prints usage
  */
@@ -25,7 +25,7 @@ import java.util.concurrent.Callable;
         "",
         "  Examples:",
         "    @|yellow seed|@                  — start the interactive wizard",
-        "    @|yellow seed -p ./my-project|@  — generate the project at the given path",
+        "    @|yellow seed -p ./projects|@    — create ./projects/<artifact> without overwriting existing files",
         "    @|yellow seed --refresh|@        — force re-fetch of metadata from start.spring.io",
         ""
 })
@@ -34,7 +34,7 @@ public class SeedCli implements Callable<Integer>
     @Option(names = { "-r", "--refresh" }, description = "Force refresh the cached metadata from start.spring.io")
     private boolean refresh;
 
-    @Option(names = { "-p", "--path" }, paramLabel = "<path>", description = "Directory where the generated project will be saved")
+    @Option(names = { "-p", "--path" }, paramLabel = "<path>", description = "Parent directory for the generated <artifact> project folder (default: home directory)")
     private Path outputPath;
 
     @Override

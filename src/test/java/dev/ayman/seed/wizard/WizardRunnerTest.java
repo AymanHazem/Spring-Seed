@@ -2,6 +2,11 @@ package dev.ayman.seed.wizard;
 
 import dev.ayman.seed.model.Option;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,6 +14,40 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WizardRunnerTest {
+
+    @Test
+    void outputDirectoryUsesArtifactFolderInsideExistingParent(@TempDir Path parent) throws Exception {
+        Path existingFile = parent.resolve("notes.txt");
+        Files.writeString(existingFile, "Keep this file");
+
+        Path target = WizardRunner.resolveOutputDirectory(parent, "hazem");
+
+        assertEquals(parent.resolve("hazem").toAbsolutePath().normalize(), target);
+        assertEquals("Keep this file", Files.readString(existingFile));
+        assertFalse(Files.exists(target));
+    }
+
+    @Test
+    void outputDirectoryDefaultsToArtifactFolderInsideHome() {
+        assertEquals(Path.of(System.getProperty("user.home"), "hazem").toAbsolutePath().normalize(),
+                WizardRunner.resolveOutputDirectory(null, "hazem"));
+    }
+
+    @Test
+    void outputDirectoryNormalizesRelativeParent() {
+        assertEquals(Path.of("projects", "hazem").toAbsolutePath().normalize(),
+                WizardRunner.resolveOutputDirectory(Path.of("projects", "temp", ".."), "hazem"));
+    }
+
+    @Test
+    void outputDirectoryRejectsArtifactsThatAreNotSingleDirectoryNames(@TempDir Path parent) {
+        for (String artifact : List.of("", " ", ".", "..", "../hazem", "/hazem", "nested/hazem", "nested\\hazem")) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> WizardRunner.resolveOutputDirectory(parent, artifact), artifact);
+        }
+        assertThrows(IllegalArgumentException.class,
+                () -> WizardRunner.resolveOutputDirectory(parent, null));
+    }
 
     private static Option option(String id, String name) {
         try {

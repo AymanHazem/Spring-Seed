@@ -38,13 +38,13 @@ public class SelectionPrompt
     {
         return select("Project Type", options, defaultId,
                 ProjectType::getId, ProjectType::getName, ProjectType::getDescription,
-                pt -> false);
+                _ -> false);
     }
 
     public Option selectOption(String label, List<Option> options, String defaultId)
     {
         return select(label, options, defaultId,
-                Option::getId, Option::getName, opt -> null,
+                Option::getId, Option::getName, _ -> null,
                 Option::isUnstable);
     }
 
