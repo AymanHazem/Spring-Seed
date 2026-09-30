@@ -6,7 +6,7 @@ target/
 *.iml
 .vscode/
 *.class
-
+.vscode/
 # ── Environment & secrets ──────────────────
 .env
 !.env.example
@@ -16,4 +16,4 @@ target/
 Thumbs.db
 
 # ── Cache ──────────────────────────────────
-~/.cache/spring-init/
+~/.cache/seed/

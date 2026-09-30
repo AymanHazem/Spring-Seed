@@ -20,6 +20,10 @@ public class ProjectConfig
     private String javaVersion;
     private String version;
     private List<String> dependencies = new ArrayList<>();
+    private boolean createEnvFiles;
+    private boolean useYaml;
+    private boolean initGit;
+    private String outputDirectory;
 
 
     public String getType() {
@@ -117,14 +121,37 @@ public class ProjectConfig
     }
 
 
-    public void setCreateEnvFiles(boolean createEnvFiles) {}
+    public boolean isCreateEnvFiles() {
+        return createEnvFiles;
+    }
 
-    public void setUseYaml(boolean useYaml) {}
+    public void setCreateEnvFiles(boolean createEnvFiles) {
+        this.createEnvFiles = createEnvFiles;
+    }
 
-    public void setInitGit(boolean initGit) {}
+    public boolean isUseYaml() {
+        return useYaml;
+    }
 
+    public void setUseYaml(boolean useYaml) {
+        this.useYaml = useYaml;
+    }
 
-    public void setOutputDirectory(String outputDirectory) {}
+    public boolean isInitGit() {
+        return initGit;
+    }
+
+    public void setInitGit(boolean initGit) {
+        this.initGit = initGit;
+    }
+
+    public String getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setOutputDirectory(String outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
 
     /** Derive package name from groupId + artifactId (replaces hyphens). */
     public String derivePackageName()

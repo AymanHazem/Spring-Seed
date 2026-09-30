@@ -31,33 +31,32 @@ public class MetadataForm
         out.println(ansi().fgBrightCyan().a(
                 "  └──────────────────────────────────────────────").reset());
 
-        String groupId = prompt("  Group          ", meta.getGroupId().getDefaultValue());
+        String groupDefault = meta.getGroupId().getDefaultValue();
+        String groupId = prompt("  Group          ", groupDefault);
+        config.setGroupId(groupId.isBlank() ? groupDefault : groupId);
 
-        String artifactId = prompt("  Artifact       ", meta.getArtifactId().getDefaultValue());
+        String artifactDefault = meta.getArtifactId().getDefaultValue();
+        String artifactId = prompt("  Artifact       ", artifactDefault);
+        config.setArtifactId(artifactId.isBlank() ? artifactDefault : artifactId);
 
-        String name = prompt("  Name           ", artifactId.isEmpty()
-                ? meta.getName().getDefaultValue()
-                : artifactId);
-
-        String description = prompt("  Description    ", meta.getDescription().getDefaultValue());
-
-        String version = prompt("  Version        ", meta.getVersion().getDefaultValue());
-
-        String defaultPkg = (groupId + "." + artifactId.replaceAll("[^a-zA-Z0-9]", "").toLowerCase());
-
-        String packageName = prompt("  Package name is :   ", defaultPkg);
-
-        config.setGroupId(groupId.isBlank() ? meta.getGroupId().getDefaultValue() : groupId);
-
-        config.setArtifactId(artifactId.isBlank() ? meta.getArtifactId().getDefaultValue() : artifactId);
-
+        String name = prompt("  Name           ", config.getArtifactId());
         config.setName(name.isBlank() ? config.getArtifactId() : name);
 
-        config.setDescription(description.isBlank() ? meta.getDescription().getDefaultValue() : description);
+        String descriptionDefault = optionalDefault(meta.getDescription());
+        String description = prompt("  Description    ", descriptionDefault);
+        config.setDescription(description.isBlank() ? descriptionDefault : description);
 
-        config.setVersion(version.isBlank() ? meta.getVersion().getDefaultValue() : version);
+        String versionDefault = meta.getVersion().getDefaultValue();
+        String version = prompt("  Version        ", versionDefault);
+        config.setVersion(version.isBlank() ? versionDefault : version);
 
+        String packageName = prompt("  Package name is :   ", config.derivePackageName());
         config.setPackageName(packageName.isBlank() ? config.derivePackageName() : packageName);
+    }
+
+    private static String optionalDefault(InitializrMetadata.TextDefault value)
+    {
+        return value == null || value.getDefaultValue() == null ? "" : value.getDefaultValue();
     }
 
     private String prompt(String label, String defaultValue) throws Exception
@@ -71,6 +70,8 @@ public class MetadataForm
         out.flush();
 
         String line = in.readLine();
-        return (line == null) ? "" : line.trim();
+        if (line == null)
+            throw new WizardCancelledException();
+        return line.trim();
     }
 }

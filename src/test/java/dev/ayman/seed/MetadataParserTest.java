@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.ayman.seed.model.InitializrMetadata;
 import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 

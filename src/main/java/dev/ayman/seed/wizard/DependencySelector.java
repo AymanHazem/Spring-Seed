@@ -35,6 +35,16 @@ public class DependencySelector
         this.out = new PrintWriter(System.out, true);
     }
 
+    /**
+     * Package-visible constructor allowing injection of I/O streams for testing.
+     */
+    DependencySelector(List<Dependency> allDependencies, BufferedReader in, PrintWriter out)
+    {
+        this.allDependencies = allDependencies;
+        this.in = in;
+        this.out = out;
+    }
+
     public List<String> select() throws Exception
     {
         out.println();
@@ -52,7 +62,7 @@ public class DependencySelector
 
             String line = in.readLine();
             if (line == null)
-                break;
+                throw new WizardCancelledException();
             line = line.trim();
 
             if (line.equalsIgnoreCase(":done") || line.isEmpty())
@@ -68,22 +78,28 @@ public class DependencySelector
             // If user types a number, toggle that result
             if (line.matches("\\d+"))
             {
-                int idx = Integer.parseInt(line) - 1;
-                if (idx >= 0 && idx < filtered.size())
+                try
                 {
-                    String id = filtered.get(idx).getId();
-                    if (selectedIds.contains(id))
-                        selectedIds.remove(id);
-                    else
-                        selectedIds.add(id);
-
+                    int idx = Integer.parseInt(line) - 1;
+                    if (idx >= 0 && idx < filtered.size())
+                    {
+                        String id = filtered.get(idx).getId();
+                        if (!selectedIds.remove(id))
+                            selectedIds.add(id);
+                    }
                 }
-                // After toggling, keep current query results if we are in search mode,
-                // otherwise stay on the featured list.
-                if (lastQuery.isBlank())
-                    filtered = initialFeaturedList();
-                else
-                    filtered = FuzzyMatcher.search(allDependencies, lastQuery);
+                catch (NumberFormatException e)
+                {
+                    // The input matched \d+ but overflowed int (e.g. a 15+ digit
+                    // string) — treat it as an out-of-range choice instead of
+                    // crashing the whole wizard.
+                    out.println(ansi().fgRed().a("  ✗ Invalid choice: " + line).reset());
+                }
+                // After toggling, clear the search field so it doesn't visually
+                // accumulate with whatever the user types next, and go back to the
+                // featured list.
+                lastQuery = "";
+                filtered = initialFeaturedList();
             }
             else
             {
@@ -111,11 +127,7 @@ public class DependencySelector
         }
         // Fallback: if none of the expected IDs are present, just show the first page
         if (featured.isEmpty())
-        {
-            int limit = Math.min(PAGE_SIZE, allDependencies.size());
-            for (int i = 0; i < limit; i++)
-                featured.add(allDependencies.get(i));
-        }
+            featured.addAll(allDependencies.stream().limit(PAGE_SIZE).toList());
         return featured;
     }
 

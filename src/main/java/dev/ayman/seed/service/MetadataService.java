@@ -1,7 +1,8 @@
 package dev.ayman.seed.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.ayman.seed.model.InitializrMetadata;
-
+import dev.ayman.seed.model.Option;
+import dev.ayman.seed.model.ProjectType;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -11,23 +12,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 /**
- * Fetches the Spring Initializr metadata from start.spring.io and caches it
- * locally.
- * Cache location: ~/.cache/seed/metadata.json
- * Cache TTL: 1 hour
+ * Fetches Spring Initializr metadata and caches it locally for one hour.
+ * A valid stale cache is used when refreshing from the network fails.
  */
 public class MetadataService
 {
     private static final String METADATA_URL = "https://start.spring.io/metadata/client";
     private static final Duration CACHE_TTL = Duration.ofHours(1);
-    private static final Path CACHE_FILE;
-
-    static
-    {
-        String home = System.getProperty("user.home");
-        CACHE_FILE = Path.of(home, ".cache", "seed", "metadata.json");
-    }
+    private static final Path CACHE_FILE = Path.of(
+            System.getProperty("user.home"), ".cache", "seed", "metadata.json");
 
     private final ObjectMapper mapper;
     private final HttpClient httpClient;
@@ -41,19 +39,41 @@ public class MetadataService
                 .build();
     }
 
-    //Returns cached metadata if fresh, otherwise fetches from the API.
-    //param forceRefresh bypass cache and fetch fresh data
     public InitializrMetadata getMetadata(boolean forceRefresh) throws IOException, InterruptedException
     {
-        if (!forceRefresh && isCacheFresh())
-            return loadFromCache();
-        return fetchAndCache();
+        InitializrMetadata cachedMetadata = null;
+        IOException cacheFailure = null;
+
+        if (Files.exists(CACHE_FILE))
+        {
+            try
+            {
+                cachedMetadata = loadFromCache();
+                if (!forceRefresh && isCacheFresh())
+                    return cachedMetadata;
+            }
+            catch (IOException e)
+            {
+                cacheFailure = e;
+            }
+        }
+
+        try
+        {
+            return fetchAndCache();
+        }
+        catch (IOException fetchFailure)
+        {
+            if (cachedMetadata != null)
+                return cachedMetadata;
+            if (cacheFailure != null)
+                fetchFailure.addSuppressed(cacheFailure);
+            throw fetchFailure;
+        }
     }
 
     private boolean isCacheFresh()
     {
-        if (!Files.exists(CACHE_FILE))
-            return false;
         try
         {
             Instant lastModified = Files.getLastModifiedTime(CACHE_FILE).toInstant();
@@ -67,8 +87,9 @@ public class MetadataService
 
     private InitializrMetadata loadFromCache() throws IOException
     {
-        byte[] bytes = Files.readAllBytes(CACHE_FILE);
-        return mapper.readValue(bytes, InitializrMetadata.class);
+        InitializrMetadata metadata = mapper.readValue(Files.readAllBytes(CACHE_FILE), InitializrMetadata.class);
+        validate(metadata);
+        return metadata;
     }
 
     private InitializrMetadata fetchAndCache() throws IOException, InterruptedException
@@ -82,16 +103,67 @@ public class MetadataService
                 .build();
 
         HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
         if (response.statusCode() != 200)
             throw new IOException("Failed to fetch metadata: HTTP " + response.statusCode());
 
         byte[] body = response.body();
+        InitializrMetadata metadata = mapper.readValue(body, InitializrMetadata.class);
+        validate(metadata);
 
-        // Write to cache
         Files.createDirectories(CACHE_FILE.getParent());
         Files.write(CACHE_FILE, body);
+        return metadata;
+    }
 
-        return mapper.readValue(body, InitializrMetadata.class);
+    static void validate(InitializrMetadata metadata) throws IOException
+    {
+        if (metadata == null)
+            throw invalid("response body is empty");
+
+        requireSelectGroup("project type", metadata.getType(), ProjectType::getId, ProjectType::isProjectFormat);
+        requireSelectGroup("language", metadata.getLanguage(), Option::getId, _ -> true);
+        requireSelectGroup("Spring Boot version", metadata.getBootVersion(), Option::getId, _ -> true);
+        requireSelectGroup("packaging", metadata.getPackaging(), Option::getId, _ -> true);
+        requireSelectGroup("Java version", metadata.getJavaVersion(), Option::getId, _ -> true);
+
+        requireTextDefault("groupId", metadata.getGroupId());
+        requireTextDefault("artifactId", metadata.getArtifactId());
+        requireTextDefault("version", metadata.getVersion());
+    }
+
+    private static <T> void requireSelectGroup(
+            String name,
+            InitializrMetadata.SelectGroup<T> group,
+            Function<T, String> idExtractor,
+            Predicate<T> selectable) throws IOException
+    {
+        if (group == null)
+            throw invalid("missing " + name + " options");
+
+        List<T> values = group.getValues();
+        if (values == null || values.stream().noneMatch(selectable))
+            throw invalid("no selectable " + name + " options were provided");
+
+        String defaultValue = group.getDefaultValue();
+        if (defaultValue == null || defaultValue.isBlank())
+            throw invalid("missing default " + name);
+
+        boolean defaultExists = values.stream()
+                .filter(selectable)
+                .map(idExtractor)
+                .anyMatch(defaultValue::equals);
+        if (!defaultExists)
+            throw invalid("default " + name + " '" + defaultValue + "' is not selectable");
+    }
+
+    private static void requireTextDefault(String name, InitializrMetadata.TextDefault value) throws IOException
+    {
+        if (value == null || value.getDefaultValue() == null)
+            throw invalid("missing default " + name);
+    }
+
+    private static IOException invalid(String detail)
+    {
+        return new IOException("Invalid Spring Initializr metadata: " + detail);
     }
 }

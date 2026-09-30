@@ -10,15 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FuzzyMatcherTest {
 
-    private static Dependency dep(String id, String name, String description) {
-        Dependency d = new Dependency();
-        // Use setter-less approach via reflection would need setters — our class has
-        // them not
-        // so we'll use the public setters added via category
-        // Actually Dependency fields are set via Jackson — let's use a helper
-        return makeDep(id, name, description);
-    }
-
     private static Dependency makeDep(String id, String name, String desc) {
         // Create via Jackson ObjectMapper to respect our POJO design
         try {

@@ -1,17 +1,17 @@
 package dev.ayman.seed;
-
+import dev.ayman.seed.wizard.WizardCancelledException;
 import dev.ayman.seed.wizard.WizardRunner;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
-
 /**
  * Entry point for the Seed CLI tool.
  * Usage:
  * seed — runs the interactive wizard
  * seed --refresh — re-fetches metadata ignoring cache
+ * seed -p /path/to/project — saves the generated project at the given path
  * seed --version — prints version
  * seed --help — prints usage
  */
@@ -24,30 +24,44 @@ import java.util.concurrent.Callable;
 }, footer = {
         "",
         "  Examples:",
-        "    @|yellow seed|@            — start the interactive wizard",
-        "    @|yellow seed --refresh|@  — force re-fetch of metadata from start.spring.io",
+        "    @|yellow seed|@                  — start the interactive wizard",
+        "    @|yellow seed -p ./my-project|@  — generate the project at the given path",
+        "    @|yellow seed --refresh|@        — force re-fetch of metadata from start.spring.io",
         ""
 })
-public class SeedCli implements Callable<Integer> {
-
+public class SeedCli implements Callable<Integer>
+{
     @Option(names = { "-r", "--refresh" }, description = "Force refresh the cached metadata from start.spring.io")
     private boolean refresh;
 
+    @Option(names = { "-p", "--path" }, paramLabel = "<path>", description = "Directory where the generated project will be saved")
+    private Path outputPath;
+
     @Override
-    public Integer call() {
-        try {
-            new WizardRunner(refresh).run();
+    public Integer call()
+    {
+        try
+        {
+            new WizardRunner(refresh, outputPath).run();
             return 0;
-        } catch (Exception e) {
+        }
+        catch (WizardCancelledException e)
+        {
+            System.err.println("\n  Wizard cancelled.");
+            return 130;
+        }
+        catch (Exception e)
+        {
             System.err.println("\n  ✗ Error: " + e.getMessage());
-            if (System.getProperty("seed.debug") != null) {
+            if (System.getProperty("seed.debug") != null)
                 e.printStackTrace();
-            }
+
             return 1;
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         int exitCode = new CommandLine(new SeedCli())
                 .setColorScheme(CommandLine.Help.defaultColorScheme(CommandLine.Help.Ansi.AUTO))
                 .execute(args);

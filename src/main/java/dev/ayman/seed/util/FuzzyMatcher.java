@@ -34,21 +34,12 @@ public class FuzzyMatcher
 
         record Scored(Dependency dep, int score) {}
 
-        List<Scored> scored = new ArrayList<>();
-        for (Dependency dep : dependencies)
-        {
-            int score = score(dep, q);
-            if (score > 0)
-                scored.add(new Scored(dep, score));
-        }
-
-        scored.sort(Comparator.comparingInt(Scored::score).reversed());
-
-        List<Dependency> result = new ArrayList<>(scored.size());
-        for (Scored s : scored)
-            result.add(s.dep());
-
-        return result;
+        return dependencies.stream()
+                .map(dep -> new Scored(dep, score(dep, q)))
+                .filter(s -> s.score() > 0)
+                .sorted(Comparator.comparingInt(Scored::score).reversed())
+                .map(Scored::dep)
+                .toList();
     }
 
     /**
@@ -69,8 +60,10 @@ public class FuzzyMatcher
         if (id.contains(query))
             return 50;
 
+        String[] tokens = name.split("[\\s\\-_]+");
+
         // Token-based name match
-        for (String token : name.split("[\\s\\-_]+"))
+        for (String token : tokens)
         {
             if (token.startsWith(query))
                 return 40;
@@ -80,7 +73,7 @@ public class FuzzyMatcher
             return 20;
 
         // Levenshtein on individual name words
-        for (String token : name.split("[\\s\\-_]+"))
+        for (String token : tokens)
         {
             if (token.length() >= 3 && levenshtein(token, query) <= 2)
                 return 10;

@@ -10,7 +10,7 @@ public class GitInitializer
     private GitInitializer() {}
 
     /**
-     * Runs: git init → git add . → git commit -m "Initial commit (spring-init)"
+     * Runs: git init → git add . → git commit -m "Initial commit (seed)"
      *
      * @param projectDir the directory to initialize git in
      * @throws IOException          if a process fails to start
@@ -20,7 +20,7 @@ public class GitInitializer
     {
         run(projectDir, "git", "init");
         run(projectDir, "git", "add", ".");
-        run(projectDir, "git", "commit", "-m", "Initial commit (seed)");
+        run(projectDir, "git", "commit", "-m", "Initial commit");
     }
 
     private static void run(Path dir, String... command) throws IOException, InterruptedException
