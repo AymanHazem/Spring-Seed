@@ -9,16 +9,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import static org.fusesource.jansi.Ansi.ansi;
-/**
- * Interactive dependency selector with live fuzzy search.
- * Controls:
- * Type to filter — results update after each character
- * ↑/↓ arrows — move cursor (not available in raw mode via console; use numbers)
- * [number] — toggle dependency by its displayed index
- * ENTER — confirm selection with empty input
- * :clear — clear all selections
- * :done — finish selection
- */
 public class DependencySelector
 {
 
@@ -35,9 +25,7 @@ public class DependencySelector
         this.out = new PrintWriter(System.out, true);
     }
 
-    /**
-     * Package-visible constructor allowing injection of I/O streams for testing.
-     */
+
     DependencySelector(List<Dependency> allDependencies, BufferedReader in, PrintWriter out)
     {
         this.allDependencies = allDependencies;

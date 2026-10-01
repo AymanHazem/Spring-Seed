@@ -25,9 +25,6 @@ public class SelectionPrompt
         this.out = new PrintWriter(System.out, true);
     }
 
-    /**
-     * Package-visible constructor allowing injection of I/O streams for testing.
-     */
     SelectionPrompt(BufferedReader in, PrintWriter out)
     {
         this.in = in;

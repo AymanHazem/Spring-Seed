@@ -139,19 +139,6 @@ public class ProjectGeneratorService
                 .collect(Collectors.joining("&", BASE_URL + "?", ""));
     }
 
-    /**
-     * start.spring.io's metadata still returns legacy ".RELEASE"-suffixed ids for
-     * stable Boot versions (e.g. "4.1.0.RELEASE"), but modern Spring Boot (3.x+)
-     * publishes artifacts to Maven Central without that suffix (e.g. "4.1.0").
-     * Sending the raw ".RELEASE" id works for Maven project generation (which
-     * just substitutes the string into pom.xml) but breaks Gradle project
-     * generation with an HTTP 500, because start.spring.io actually tries to
-     * resolve the Spring Boot BOM against the real Maven Central coordinate and
-     * "...RELEASE" doesn't exist there. Stripping the suffix before sending the
-     * request fixes this for both build systems. Snapshot qualifiers (e.g.
-     * ".BUILD-SNAPSHOT") are left untouched since those genuinely are part of
-     * the published coordinate.
-     */
     private static String stripReleaseSuffix(String bootVersion)
     {
         if (bootVersion != null && bootVersion.endsWith(".RELEASE"))
@@ -214,11 +201,6 @@ public class ProjectGeneratorService
         }
     }
 
-    /**
-     * Apply small adjustments to the generated project that are specific to how
-     * Seed wants things to look, without changing what Spring Initializr
-     * returns.
-     */
     private void postProcessGeneratedProject(ProjectConfig config, Path outputDir) throws IOException
     {
         Path pom = outputDir.resolve("pom.xml");
@@ -229,7 +211,6 @@ public class ProjectGeneratorService
         if (bootVersion == null || !bootVersion.endsWith(".RELEASE"))
             return;
 
-        // If the parent version was generated as e.g. 4.0.3.RELEASE, normalize it
         String from = "<version>" + bootVersion + "</version>";
         String to = "<version>" + stripReleaseSuffix(bootVersion) + "</version>";
         String content = Files.readString(pom, StandardCharsets.UTF_8);

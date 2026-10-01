@@ -13,7 +13,6 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.fusesource.jansi.Ansi.ansi;
 public class WizardRunner
 {
@@ -176,27 +175,11 @@ public class WizardRunner
         return selected;
     }
 
-    /**
-     * Gradle project type ids from start.spring.io always start with "gradle"
-     * ("gradle-project", "gradle-project-kotlin", "gradle-build").
-     * Package-visible + static so this small piece of logic can be unit
-     * tested directly, since WizardRunner as a whole has no I/O seam yet.
-     */
     static boolean isGradleProjectType(String typeId)
     {
         return typeId != null && typeId.startsWith("gradle");
     }
 
-    /**
-     * Returns the boot versions that should be offered for the given project
-     * type. Gradle project generation on start.spring.io currently always
-     * fails to resolve the Spring Boot BOM for SNAPSHOT/milestone versions
-     * (confirmed against the live API), so those are excluded when the
-     * project type is Gradle — unless doing so would leave no options at all
-     * (e.g. during an early pre-GA period where every listed version is
-     * unstable), in which case the full list is returned as a fallback.
-     * Package-visible + static so this logic can be unit tested directly.
-     */
     static List<Option> selectableBootVersions(List<Option> allBootVersions, String projectTypeId)
     {
         if (!isGradleProjectType(projectTypeId))

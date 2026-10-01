@@ -42,10 +42,6 @@ public class EnvFileWriter
     /**
      * Creates .env and .env.example in projectRoot, then patches the Spring config
      * file.
-     *
-     * @param projectRoot root directory of the generated project
-     * @param useYaml     true if the project uses application.yml, false for
-     *                    .properties
      */
     public static void writeEnvFiles(Path projectRoot, boolean useYaml) throws IOException
     {

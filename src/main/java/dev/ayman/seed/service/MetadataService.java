@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 /**
  * Fetches Spring Initializr metadata and caches it locally for one hour.
  * A valid stale cache is used when refreshing from the network fails.

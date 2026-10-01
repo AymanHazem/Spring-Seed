@@ -1,7 +1,6 @@
 package dev.ayman.seed.util;
 import java.io.IOException;
 import java.nio.file.Path;
-
 import static java.lang.ProcessBuilder.Redirect.DISCARD;
 /**
  * Initializes a git repository in a project directory and creates an initial
@@ -12,11 +11,7 @@ public class GitInitializer
     private GitInitializer() {}
 
     /**
-     * Runs: git init → git add . → git commit -m "Initial commit (seed)"
-     *
-     * @param projectDir the directory to initialize git in
-     * @throws IOException          if a process fails to start
-     * @throws InterruptedException if the process is interrupted
+     * Runs: git init → git add . → git commit -m "Initial commit"
      */
     public static void init(Path projectDir) throws IOException, InterruptedException
     {

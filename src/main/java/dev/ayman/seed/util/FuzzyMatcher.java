@@ -3,29 +3,12 @@ import dev.ayman.seed.model.Dependency;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-/**
- * Simple but effective fuzzy matching for dependency search.
- * Scoring strategy (higher = better match):
- * 100 — exact id match (case-insensitive)
- * 80 — name starts with query
- * 60 — name contains query
- * 50 — id contains query
- * 40 — any token in the name starts with query
- * 20 — description contains query
- * 10 — Levenshtein distance <= 2 on name words
- * 0 — no match (excluded from results)
- */
+
 public class FuzzyMatcher
 {
     private FuzzyMatcher() {}
 
-    /**
-     * Filter and rank dependencies by query relevance.
-     *
-     * @param dependencies all available dependencies
-     * @param query        user's search query (may be empty)
-     * @return sorted list, best match first; if query is blank returns all as-is
-     */
+     // Filter and rank dependencies by query relevance.
     public static List<Dependency> search(List<Dependency> dependencies, String query) {
         if (query == null || query.isBlank())
             return new ArrayList<>(dependencies);
