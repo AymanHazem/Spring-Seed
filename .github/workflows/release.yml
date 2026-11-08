@@ -1,0 +1,121 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'maven'
+
+      - name: Check tag matches project version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          POM_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$POM_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match pom.xml version $POM_VERSION"
+            exit 1
+          fi
+          if ! grep -q "version = \"seed $TAG_VERSION\"" src/main/java/dev/ayman/seed/SeedCli.java; then
+            echo "::error::SeedCli.java --version string does not match $TAG_VERSION"
+            exit 1
+          fi
+
+      - name: Run tests
+        run: mvn -B test
+
+  build:
+    name: Build ${{ matrix.asset }}
+    needs: test
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64 — also covers WSL2. Built on the oldest available
+          # Ubuntu so the binary links against an older glibc and runs on more distros.
+          - runner: ubuntu-22.04
+            asset: seed-linux-amd64
+          - runner: ubuntu-22.04-arm
+            asset: seed-linux-arm64
+          # macOS Apple Silicon
+          - runner: macos-latest
+            asset: seed-darwin-arm64
+          # macOS Intel
+          - runner: macos-15-intel
+            asset: seed-darwin-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'maven'
+
+      - name: Build native binary
+        run: mvn -B -Pnative clean package -DskipTests
+
+      - name: Smoke test
+        run: |
+          ./target/seed --version
+          ./target/seed --help > /dev/null
+
+      - name: Prepare asset
+        run: |
+          mkdir -p dist
+          cp target/seed "dist/${{ matrix.asset }}"
+          chmod +x "dist/${{ matrix.asset }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          chmod +x seed-*
+          sha256sum seed-* > checksums.txt
+          cat checksums.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/seed-*
+            dist/checksums.txt
+            install.sh
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

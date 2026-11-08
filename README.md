@@ -27,11 +27,30 @@ Run it as a standalone **GraalVM native executable** or a **Java JAR**.
 
 ### Prerequisites
 
-- Linux / macOS / WSL
+- Linux (x86_64 / arm64), macOS (Apple Silicon / Intel), or WSL
 - Internet access
 
-> [!NOTE]
-> For now, build Spring Seed from source using the instructions below.
+No Java installation is needed: Seed ships as a self-contained native binary.
+
+### Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | sh
+```
+
+The installer detects your OS and CPU, downloads the matching binary from the latest [GitHub Release](https://github.com/AymanHazem/Spring-Seed/releases), verifies its SHA-256 checksum, installs it to `~/.local/bin/seed`, and adds that directory to your `PATH` if needed.
+
+Options (set as environment variables on the `sh` side of the pipe):
+
+```bash
+# Install a specific version
+curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | SEED_VERSION=v1.0.0 sh
+
+# Install somewhere else, and don't touch shell rc files
+curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | SEED_INSTALL_DIR="$HOME/bin" SEED_NO_MODIFY_PATH=1 sh
+```
+
+To uninstall, delete the binary and the metadata cache (`rm ~/.local/bin/seed && rm -rf ~/.cache/seed`), then remove the `# Added by Spring Seed installer` line from your shell rc file.
 
 ### Install from Source
 
@@ -219,6 +238,18 @@ mvn -Pnative clean package
 > The JAR accepts the same CLI options, including `--path` and `--refresh`.
 
 The test suite covers metadata parsing and validation, cache behavior, CLI options, prompts, dependency search, configuration generation, output-path resolution, and project ZIP extraction.
+
+### Releasing
+
+Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml): it runs the tests, builds native binaries for `linux-amd64`, `linux-arm64`, `darwin-arm64`, and `darwin-amd64`, and publishes them with `checksums.txt` to a GitHub Release. The installer always pulls from that release.
+
+```bash
+# The tag must match <version> in pom.xml (and the version string in SeedCli.java).
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Tags containing `-` (e.g. `v1.1.0-beta.1`) are published as prereleases and are skipped by the default `latest` install.
 
 ### Project structure
 

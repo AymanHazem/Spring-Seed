@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/ayman/Seed/.archify/architecture-spring-seed-20261025-104349/candidate.json",
+    "sha256": "d3db8786cd47a5d7bd0568cd97a5f7a4d79394219a5d30eb0eb62caeef84c38c",
+    "bytes": 10779
+  },
+  "artifact": {
+    "path": "/home/ayman/Seed/.archify/architecture-spring-seed-20261025-104349/spring-seed.html",
+    "sha256": "a94ac254ff76f72dc8e9d596197a8cabc622311736386c6e9ec205157cd3c89b",
+    "bytes": 861635
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/ayman/Seed/.archify/architecture-spring-seed-20261025-104349/spring-seed.finalize.json",
+    "summaryReceipt": "/home/ayman/Seed/.archify/architecture-spring-seed-20261025-104349/spring-seed.finalize-summary.json",
+    "browserCheckReceipt": "/home/ayman/Seed/.archify/architecture-spring-seed-20261025-104349/spring-seed.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-25T07:51:31.958Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 8966,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

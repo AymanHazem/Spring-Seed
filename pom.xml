@@ -143,6 +143,8 @@
                             <mainClass>dev.ayman.seed.SeedCli</mainClass>
                             <buildArgs>
                                 <buildArg>--no-fallback</buildArg>
+                                <!-- Portable CPU baseline so release binaries run on older x86-64 machines (default targets x86-64-v3) -->
+                                <buildArg>-march=compatibility</buildArg>
                                 <buildArg>--enable-url-protocols=https,http</buildArg>
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>
                                 <buildArg>--initialize-at-build-time=org.fusesource.jansi</buildArg>
