@@ -125,7 +125,8 @@ main() {
 
     info "Downloading ${asset}..."
     download "${base_url}/${asset}" "$tmp/$asset" \
-        || die "download failed: ${base_url}/${asset} (is there a release for ${platform}?)"
+        || die "download failed: ${base_url}/${asset}
+       No published ${version} release contains ${asset} yet. Check https://github.com/${REPO}/releases"
 
     info "Verifying checksum..."
     if download "${base_url}/checksums.txt" "$tmp/checksums.txt" 2>/dev/null; then
