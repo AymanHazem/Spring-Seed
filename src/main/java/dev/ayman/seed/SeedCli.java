@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
  * seed --version — prints version
  * seed --help — prints usage
  */
-@Command(name = "seed", version = "seed " + SeedCli.VERSION, mixinStandardHelpOptions = true,
+@Command(name = "seed", version = "seed 1.1.0", mixinStandardHelpOptions = true,
         subcommands = { InitCommand.class, UpdateCommand.class, CommandLine.HelpCommand.class },
         description = {
                 "",
