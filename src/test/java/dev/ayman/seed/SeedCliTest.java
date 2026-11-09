@@ -6,6 +6,7 @@ import picocli.CommandLine;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SeedCliTest
 {
@@ -25,5 +26,17 @@ class SeedCliTest
                 .parseArgs("--path", "projects/my-project");
 
         assertEquals(Path.of("projects/my-project"), result.matchedOptionValue("--path", null));
+    }
+
+    @Test
+    void testHelpAndVersionOptionsAreAvailable()
+    {
+        CommandLine cmd = new CommandLine(new SeedCli());
+        assertTrue(cmd.getCommandSpec().optionsMap().containsKey("-h"));
+        assertTrue(cmd.getCommandSpec().optionsMap().containsKey("--help"));
+        assertTrue(cmd.getCommandSpec().optionsMap().containsKey("-V"));
+        assertTrue(cmd.getCommandSpec().optionsMap().containsKey("--version"));
+        assertTrue(cmd.getCommandSpec().optionsMap().containsKey("-v"));
+        assertTrue(cmd.getCommandSpec().optionsMap().containsKey("--project-version"));
     }
 }

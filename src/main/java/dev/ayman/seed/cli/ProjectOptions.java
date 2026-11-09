@@ -43,7 +43,7 @@ public class ProjectOptions
     @Option(names = "--packaging", description = "Packaging: jar or war (default: jar)")
     public String packaging;
 
-    @Option(names = {"-V", "--project-version", "--version"}, description = "Project version (default: 0.0.1-SNAPSHOT)")
+    @Option(names = {"-v", "--project-version"}, description = "Project version (default: 0.0.1-SNAPSHOT)")
     public String version;
 
     @Option(names = {"-p", "--path"}, paramLabel = "<path>",

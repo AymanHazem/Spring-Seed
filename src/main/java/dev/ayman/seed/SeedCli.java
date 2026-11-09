@@ -3,6 +3,7 @@ package dev.ayman.seed;
 import dev.ayman.seed.cli.InitCommand;
 import dev.ayman.seed.cli.NonInteractiveRunner;
 import dev.ayman.seed.cli.ProjectOptions;
+import dev.ayman.seed.cli.UpdateCommand;
 import dev.ayman.seed.wizard.WizardCancelledException;
 import dev.ayman.seed.wizard.WizardRunner;
 import picocli.CommandLine;
@@ -22,8 +23,8 @@ import java.util.concurrent.Callable;
  * seed --version — prints version
  * seed --help — prints usage
  */
-@Command(name = "seed", version = "seed 1.1.0", mixinStandardHelpOptions = true,
-        subcommands = { InitCommand.class, CommandLine.HelpCommand.class },
+@Command(name = "seed", version = "seed " + SeedCli.VERSION, mixinStandardHelpOptions = true,
+        subcommands = { InitCommand.class, UpdateCommand.class, CommandLine.HelpCommand.class },
         description = {
                 "",
                 "@|bold,green  Seed — Spring Boot projects, planted fast 🌱 CLI|@",
@@ -36,14 +37,20 @@ import java.util.concurrent.Callable;
                 "    @|yellow seed|@                                — start the interactive wizard",
                 "    @|yellow seed init my-app -d web,data-jpa|@     — scaffold non-interactively in one second",
                 "    @|yellow seed my-app -d web,lombok --java 21|@ — quick generation without 'init'",
+                "    @|yellow seed update|@                         — check for updates from GitHub Releases",
                 "    @|yellow seed -p ./projects|@                  — create ./projects/<artifact>",
                 "    @|yellow seed --refresh|@                      — force re-fetch of metadata from start.spring.io",
                 ""
         })
 public class SeedCli implements Callable<Integer>
 {
+    public static final String VERSION = "1.1.0";
+
     @Option(names = { "-r", "--refresh" }, description = "Force refresh the cached metadata from start.spring.io")
     private boolean refresh;
+
+    @Option(names = "--check-update", description = "Check for Spring Seed updates and exit")
+    private boolean checkUpdate;
 
     @Mixin
     private ProjectOptions options = new ProjectOptions();
@@ -58,6 +65,11 @@ public class SeedCli implements Callable<Integer>
     {
         try
         {
+            if (checkUpdate)
+            {
+                return new UpdateCommand().call();
+            }
+
             if (options.hasExplicitGenerationOptions())
             {
                 return new NonInteractiveRunner(options, refresh).run();

@@ -14,6 +14,7 @@
 | Feature | Description |
 |---|---|
 | **Non-interactive / Flags mode** | Scaffold projects instantly with one command (e.g. `seed init my-app -d web,data-jpa --java 21`). |
+| **Automatic update checks** | Lightweight 24-hour background check notifying you when a new release is available, or manually via `seed update`. |
 | **Interactive wizard** | Numbered prompts for project type, language, Spring Boot version, metadata, packaging, and Java version. |
 | **Fuzzy dependency search** | Search dependency names, IDs, and descriptions, with typo-tolerant matching and multi-selection. |
 | **Live Initializr metadata** | Fetch available options from `start.spring.io`, with a one-hour local cache and fallback to valid cached metadata if a refresh fails. |
@@ -88,13 +89,14 @@ https://github.com/user-attachments/assets/5fcc9d53-3d83-452a-86fc-dced7e001a88
 ### CLI Options
 
 ```bash
-seed                                      # Start the interactive wizard
+seed                                       # Start the interactive wizard
 seed init my-app -d web,data-jpa --java 21 # One-shot generation (non-interactive)
-seed -p ./projects                        # Create ./projects/<artifact>
-seed --path /path/to/parent               # Choose a parent directory for the project
-seed --refresh                            # Force re-fetch metadata (bypass the fresh cache)
-seed --version                            # Print version
-seed --help                               # Show help
+seed update                                # Check for updates from GitHub Releases
+seed -p ./projects                         # Create ./projects/<artifact>
+seed --path /path/to/parent                # Choose a parent directory for the project
+seed --refresh                             # Force re-fetch metadata (bypass the fresh cache)
+seed --version                             # Print version
+seed --help                                # Show help
 ```
 
 ### Non-Interactive Mode (One-Shot Project Generation)
@@ -136,7 +138,7 @@ seed init legacy-service -d web --properties
 | `-n`, `--name` | `-n` | same as artifact | Project name. |
 | `--package-name` | | `<groupId>.<artifact>` | Package name. |
 | `--packaging` | | Initializr default (`jar`) | Packaging (`jar`, `war`). |
-| `-v`, `--version` | `-v` | Initializr default (`0.0.1-SNAPSHOT`) | Project version. |
+| `-v`, `--project-version` | `-v` | Initializr default (`0.0.1-SNAPSHOT`) | Project version. |
 | `-p`, `--path` | `-p` | `.` (current directory) | Parent directory for the generated project. |
 | `--yaml` / `--no-yaml` | | `--yaml` (enabled) | Generate `application.yml` instead of `.properties`. |
 | `--properties` | | | Use standard `application.properties`. |

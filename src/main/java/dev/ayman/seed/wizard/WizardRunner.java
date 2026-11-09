@@ -3,6 +3,7 @@ package dev.ayman.seed.wizard;
 import dev.ayman.seed.model.*;
 import dev.ayman.seed.service.MetadataService;
 import dev.ayman.seed.service.ProjectGeneratorService;
+import dev.ayman.seed.service.UpdateService;
 import dev.ayman.seed.util.EnvFileWriter;
 import dev.ayman.seed.util.GitInitializer;
 import org.fusesource.jansi.AnsiConsole;
@@ -20,6 +21,7 @@ public class WizardRunner
 {
     private final MetadataService metadataService;
     private final ProjectGeneratorService generatorService;
+    private final UpdateService updateService;
     private final BufferedReader injectedIn;
     private final PrintWriter injectedOut;
     private final boolean forceRefresh;
@@ -31,14 +33,22 @@ public class WizardRunner
 
     public WizardRunner(boolean forceRefresh, Path requestedOutputPath)
     {
-        this(new MetadataService(), new ProjectGeneratorService(), null, null, forceRefresh, requestedOutputPath);
+        this(new MetadataService(), new ProjectGeneratorService(), new UpdateService(), null, null, forceRefresh, requestedOutputPath);
     }
 
     WizardRunner(MetadataService metadataService, ProjectGeneratorService generatorService,
                  BufferedReader in, PrintWriter out, boolean forceRefresh, Path requestedOutputPath)
     {
+        this(metadataService, generatorService, new UpdateService(), in, out, forceRefresh, requestedOutputPath);
+    }
+
+    WizardRunner(MetadataService metadataService, ProjectGeneratorService generatorService,
+                 UpdateService updateService, BufferedReader in, PrintWriter out,
+                 boolean forceRefresh, Path requestedOutputPath)
+    {
         this.metadataService = metadataService;
         this.generatorService = generatorService;
+        this.updateService = updateService;
         this.injectedIn = in;
         this.injectedOut = out;
         this.forceRefresh = forceRefresh;
@@ -55,6 +65,7 @@ public class WizardRunner
             this.out = injectedOut != null ? injectedOut : new PrintWriter(System.out, true);
             this.prompt = new SelectionPrompt(in, out);
 
+            updateService.startBackgroundCheck();
             printBanner();
             InitializrMetadata meta = metadataService.getMetadata(forceRefresh);
 
@@ -154,6 +165,7 @@ public class WizardRunner
             }
 
             printSummary(config, target);
+            updateService.printNoticeIfAvailable(out);
 
         } finally {
             AnsiConsole.systemUninstall();

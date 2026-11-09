@@ -6,6 +6,7 @@ import dev.ayman.seed.model.InitializrMetadata;
 import dev.ayman.seed.model.Option;
 import dev.ayman.seed.service.MetadataService;
 import dev.ayman.seed.service.ProjectGeneratorService;
+import dev.ayman.seed.service.UpdateService;
 import dev.ayman.seed.util.EnvFileWriter;
 import dev.ayman.seed.util.FuzzyMatcher;
 import dev.ayman.seed.util.GitInitializer;
@@ -30,6 +31,7 @@ public class NonInteractiveRunner
     private final ProjectOptions options;
     private final MetadataService metadataService;
     private final ProjectGeneratorService generatorService;
+    private final UpdateService updateService;
     private final PrintWriter out;
     private final boolean forceRefresh;
 
@@ -37,15 +39,23 @@ public class NonInteractiveRunner
 
     public NonInteractiveRunner(ProjectOptions options, boolean forceRefresh)
     {
-        this(options, new MetadataService(), new ProjectGeneratorService(), new PrintWriter(System.out, true), forceRefresh);
+        this(options, new MetadataService(), new ProjectGeneratorService(), new UpdateService(), new PrintWriter(System.out, true), forceRefresh);
     }
 
     public NonInteractiveRunner(ProjectOptions options, MetadataService metadataService,
                                 ProjectGeneratorService generatorService, PrintWriter out, boolean forceRefresh)
     {
+        this(options, metadataService, generatorService, new UpdateService(), out, forceRefresh);
+    }
+
+    public NonInteractiveRunner(ProjectOptions options, MetadataService metadataService,
+                                ProjectGeneratorService generatorService, UpdateService updateService,
+                                PrintWriter out, boolean forceRefresh)
+    {
         this.options = options;
         this.metadataService = metadataService;
         this.generatorService = generatorService;
+        this.updateService = updateService;
         this.out = out;
         this.forceRefresh = forceRefresh;
     }
@@ -60,6 +70,8 @@ public class NonInteractiveRunner
         AnsiConsole.systemInstall();
         try
         {
+            updateService.startBackgroundCheck();
+
             InitializrMetadata meta = metadataService.getMetadata(forceRefresh);
             ProjectConfig config = buildConfig(meta);
             this.generatedConfig = config;
@@ -95,6 +107,7 @@ public class NonInteractiveRunner
             }
 
             printSummary(config, target);
+            updateService.printNoticeIfAvailable(out);
             return 0;
         }
         finally
