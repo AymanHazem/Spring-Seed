@@ -4,7 +4,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | sh
 #
 # Environment variables:
-#   SEED_VERSION          Release tag to install, e.g. v1.0.0 (default: latest)
+#   SEED_VERSION          Release tag to install, e.g. v1.1.0 (default: latest)
 #   SEED_INSTALL_DIR      Install directory (default: $HOME/.local/bin)
 #   SEED_NO_MODIFY_PATH   Set to 1 to skip editing shell rc files
 #   SEED_DOWNLOAD_BASE_URL  Override the download location (mirrors, local testing)
@@ -15,15 +15,22 @@ REPO="AymanHazem/Spring-Seed"
 BINARY="seed"
 
 if [ -t 1 ]; then
-    BOLD="$(printf '\033[1m')"; GREEN="$(printf '\033[32m')"; RED="$(printf '\033[31m')"
-    BLUE="$(printf '\033[34m')"; RESET="$(printf '\033[0m')"
+    BOLD="$(printf '\033[1m')"
+    GREEN="$(printf '\033[32m')"
+    BRIGHT_GREEN="$(printf '\033[1;32m')"
+    RED="$(printf '\033[31m')"
+    BLUE="$(printf '\033[34m')"
+    CYAN="$(printf '\033[36m')"
+    YELLOW="$(printf '\033[33m')"
+    DIM="$(printf '\033[2m')"
+    RESET="$(printf '\033[0m')"
 else
-    BOLD=""; GREEN=""; RED=""; BLUE=""; RESET=""
+    BOLD=""; GREEN=""; BRIGHT_GREEN=""; RED=""; BLUE=""; CYAN=""; YELLOW=""; DIM=""; RESET=""
 fi
 
-info() { printf '%s==>%s %s\n' "$BLUE" "$RESET" "$*"; }
-ok()   { printf '%s✓%s %s\n' "$GREEN" "$RESET" "$*"; }
-die()  { printf '%serror:%s %s\n' "$RED" "$RESET" "$*" >&2; exit 1; }
+step() { printf '  %s⟳%s %s\n' "$CYAN" "$RESET" "$*"; }
+ok()   { printf '  %s✔%s %s\n' "$GREEN" "$RESET" "$*"; }
+die()  { printf '\n  %s✗ Error:%s %s\n\n' "$RED" "$RESET" "$*" >&2; exit 1; }
 
 detect_platform() {
     os="$(uname -s)"
@@ -51,11 +58,25 @@ detect_platform() {
 }
 
 download() {
-    url="$1"; out="$2"
+    url="$1"; out="$2"; show_progress="${3:-0}"
     if command -v curl >/dev/null 2>&1; then
-        curl -fsSL --retry 3 -o "$out" "$url"
+        if [ "$show_progress" = "1" ] && [ -t 1 ]; then
+            # Display real-time progress bar with curl
+            curl -fL --retry 3 --progress-bar -o "$out" "$url"
+        else
+            curl -fsSL --retry 3 -o "$out" "$url"
+        fi
     elif command -v wget >/dev/null 2>&1; then
-        wget -q -O "$out" "$url"
+        if [ "$show_progress" = "1" ] && [ -t 1 ]; then
+            # Display progress bar with wget if supported
+            if wget --help 2>&1 | grep -q -- '--show-progress'; then
+                wget -q --show-progress --retry-connrefused -O "$out" "$url"
+            else
+                wget --retry-connrefused -O "$out" "$url"
+            fi
+        else
+            wget -q -O "$out" "$url"
+        fi
     else
         die "curl or wget is required"
     fi
@@ -118,48 +139,73 @@ main() {
         base_url="https://github.com/${REPO}/releases/download/${version}"
     fi
 
-    printf '%s🌱 Installing Spring Seed%s (%s, %s)\n' "$BOLD" "$RESET" "$version" "$platform"
+    printf '\n'
+    printf '  %s╔══════════════════════════════════════════════╗%s\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %s║          🌱  Spring Seed Installer           ║%s\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %s╚══════════════════════════════════════════════╝%s\n\n' "$BRIGHT_GREEN" "$RESET"
+
+    printf '  %sPlatform%s : %s\n' "$CYAN" "$RESET" "$platform"
+    printf '  %sVersion %s : %s\n' "$CYAN" "$RESET" "$version"
+    printf '  %sTarget  %s : %s/%s\n\n' "$CYAN" "$RESET" "$install_dir" "$BINARY"
 
     tmp="$(mktemp -d)"
     trap 'rm -rf "$tmp"' EXIT INT TERM
 
-    info "Downloading ${asset}..."
-    download "${base_url}/${asset}" "$tmp/$asset" \
+    step "Downloading ${asset}..."
+    download "${base_url}/${asset}" "$tmp/$asset" 1 \
         || die "download failed: ${base_url}/${asset}
        No published ${version} release contains ${asset} yet. Check https://github.com/${REPO}/releases"
 
-    info "Verifying checksum..."
-    if download "${base_url}/checksums.txt" "$tmp/checksums.txt" 2>/dev/null; then
+    ok "Download complete"
+
+    step "Verifying SHA-256 checksum..."
+    if download "${base_url}/checksums.txt" "$tmp/checksums.txt" 0 2>/dev/null; then
         expected="$(awk -v f="$asset" '$2 == f || $2 == "*"f {print $1}' "$tmp/checksums.txt")"
         actual="$(sha256_of "$tmp/$asset")"
         if [ -z "$expected" ]; then
             die "no checksum listed for ${asset}"
         elif [ -z "$actual" ]; then
-            printf '  (skipped: sha256sum/shasum not found)\n'
+            printf '     %s(skipped: sha256sum/shasum not found)%s\n' "$DIM" "$RESET"
         elif [ "$expected" != "$actual" ]; then
-            die "checksum mismatch for ${asset}"
+            die "checksum mismatch for ${asset} (expected: ${expected}, got: ${actual})"
+        else
+            ok "Checksum verified"
         fi
     else
-        die "could not download checksums.txt"
+        die "could not download checksums.txt from ${base_url}/checksums.txt"
     fi
 
+    step "Installing executable to ${install_dir}/${BINARY}..."
     mkdir -p "$install_dir"
     chmod +x "$tmp/$asset"
     mv -f "$tmp/$asset" "$install_dir/$BINARY"
-    ok "Installed ${install_dir}/${BINARY}"
+    ok "Installed successfully"
 
-    "$install_dir/$BINARY" --version >/dev/null 2>&1 \
-        || die "installed binary failed to run; please open an issue at https://github.com/${REPO}/issues"
+    step "Verifying binary execution..."
+    installed_ver="$("$install_dir/$BINARY" --version 2>/dev/null || echo "")"
+    if [ -n "$installed_ver" ]; then
+        ok "Verified: ${installed_ver}"
+    else
+        die "installed binary failed to run; please check architecture compatibility or open an issue at https://github.com/${REPO}/issues"
+    fi
 
     add_to_path "$install_dir"
 
-    printf '\n%sDone!%s ' "$GREEN" "$RESET"
+    printf '\n'
+    printf '  %s╔══════════════════════════════════════════════╗%s\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %s║          🌱  Spring Seed is ready!           ║%s\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %s╚══════════════════════════════════════════════╝%s\n\n' "$BRIGHT_GREEN" "$RESET"
+
     if [ "$NEEDS_PATH_HINT" = "1" ]; then
-        printf 'Open a new terminal, or run:\n\n  export PATH="%s:$PATH"\n\nThen start with:\n\n  %sseed%s\n\n' \
-            "$install_dir" "$BOLD" "$RESET"
-    else
-        printf 'Run %sseed%s to plant a new Spring Boot project.\n' "$BOLD" "$RESET"
+        printf '  %sNote:%s Open a new terminal session, or run:\n\n' "$YELLOW" "$RESET"
+        printf '    %sexport PATH="%s:$PATH"%s\n\n' "$BOLD" "$install_dir" "$RESET"
     fi
+
+    printf '  %sQuick Start:%s\n' "$CYAN" "$RESET"
+    printf '    %sseed%s                                 %s# Interactive wizard%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+    printf '    %sseed init my-app -d web,data-jpa%s     %s# Instant generation%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+    printf '    %sseed update%s                          %s# Check for updates%s\n\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+    printf '  %sHappy coding!%s 🌱\n\n' "$BRIGHT_GREEN" "$RESET"
 }
 
 main "$@"

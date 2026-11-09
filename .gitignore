@@ -6,7 +6,6 @@ target/
 *.iml
 .vscode/
 *.class
-.vscode/
 .archify/
 # ── Environment & secrets ──────────────────
 .env
@@ -18,3 +17,5 @@ Thumbs.db
 
 # ── Cache ──────────────────────────────────
 ~/.cache/seed/
+
+.sdkmanrc
