@@ -1,16 +1,19 @@
 package dev.ayman.seed.wizard;
+
 import dev.ayman.seed.model.Option;
 import dev.ayman.seed.model.ProjectType;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
 import static org.fusesource.jansi.Ansi.ansi;
+
 /**
  * A reusable single-selection prompt that works with any list of items.
  * Renders numbered options with ANSI colors, reads user input, validates it.

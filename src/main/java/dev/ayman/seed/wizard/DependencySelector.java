@@ -1,14 +1,17 @@
 package dev.ayman.seed.wizard;
+
 import dev.ayman.seed.model.Dependency;
 import dev.ayman.seed.util.FuzzyMatcher;
+
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 import static org.fusesource.jansi.Ansi.ansi;
+
 public class DependencySelector
 {
 

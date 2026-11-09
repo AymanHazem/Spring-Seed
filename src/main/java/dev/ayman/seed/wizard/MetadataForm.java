@@ -1,9 +1,12 @@
 package dev.ayman.seed.wizard;
+
 import dev.ayman.seed.model.InitializrMetadata;
+
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
+
 import static org.fusesource.jansi.Ansi.ansi;
+
 /**
  * Collects project metadata from the user (groupId, artifactId, name, etc.)
  * using a simple labeled-input form pattern.

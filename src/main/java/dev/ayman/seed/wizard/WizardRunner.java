@@ -1,21 +1,21 @@
 package dev.ayman.seed.wizard;
-import dev.ayman.seed.model.Dependency;
-import dev.ayman.seed.model.DependencyGroup;
-import dev.ayman.seed.model.InitializrMetadata;
-import dev.ayman.seed.model.Option;
-import dev.ayman.seed.model.ProjectType;
+
+import dev.ayman.seed.model.*;
 import dev.ayman.seed.service.MetadataService;
 import dev.ayman.seed.service.ProjectGeneratorService;
 import dev.ayman.seed.util.EnvFileWriter;
 import dev.ayman.seed.util.GitInitializer;
 import org.fusesource.jansi.AnsiConsole;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.fusesource.jansi.Ansi.ansi;
+
 public class WizardRunner
 {
     private final MetadataService metadataService;
