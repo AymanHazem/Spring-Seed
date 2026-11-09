@@ -39,6 +39,12 @@ class UpdateServiceTest
         }
 
         @Override
+        public boolean isCheckDisabled()
+        {
+            return false;
+        }
+
+        @Override
         public String fetchLatestVersionFromGitHub() throws IOException
         {
             networkCallsCount++;
