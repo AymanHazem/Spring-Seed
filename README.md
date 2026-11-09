@@ -106,7 +106,7 @@ seed --help                 # Show help
 
 | Command | Project location |
 |---|---|
-| `seed` | `~/my-app` |
+| `seed` | `./my-app` |
 | `seed -p ./projects` | `./projects/my-app` |
 | `seed --path /workspace` | `/workspace/my-app` |
 

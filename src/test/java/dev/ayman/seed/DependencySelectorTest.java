@@ -31,13 +31,10 @@ class DependencySelectorTest {
             dep("lombok", "Lombok", "Java annotation library which helps to reduce boilerplate code."),
             dep("devtools", "Spring Boot DevTools", "Provides fast application restarts, LiveReload."));
 
-    private static DependencySelector newSelector(String input, StringWriter capturedOut) throws Exception {
+    private static DependencySelector newSelector(String input, StringWriter capturedOut) {
         BufferedReader reader = new BufferedReader(new StringReader(input));
         PrintWriter writer = new PrintWriter(capturedOut, true);
-        Constructor<DependencySelector> ctor = DependencySelector.class
-                .getDeclaredConstructor(List.class, BufferedReader.class, PrintWriter.class);
-        ctor.setAccessible(true);
-        return ctor.newInstance(DEPS, reader, writer);
+        return new DependencySelector(DEPS, reader, writer);
     }
 
     @Test

@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 /**
@@ -30,12 +31,16 @@ public class EnvFileWriter
             """;
 
     private static final String SPRING_CONFIG_IMPORT = """
-            
             # Load .env file as optional external configuration
             spring.config.import=optional:file:.env[.properties]
             """;
 
-    private static final String SPRING_CONFIG_IMPORT_YAML = "\nspring:\n  config:\n    import: 'optional:file:.env[.properties]'\n";
+    private static final String SPRING_CONFIG_IMPORT_YAML = """
+            # Load .env file as optional external configuration
+            spring.config.import: "optional:file:.env[.properties]"
+            """;
+
+    private static final String IMPORT_KEY = "spring.config.import";
 
     private EnvFileWriter() {}
 
@@ -137,24 +142,184 @@ public class EnvFileWriter
     {
         int eq = line.indexOf('=');
         int colon = line.indexOf(':');
-        if (eq < 0)
-            return colon;
-        if (colon < 0)
-            return eq;
-        return Math.min(eq, colon);
+        int sep = -1;
+        if (eq >= 0 && colon >= 0)
+            sep = Math.min(eq, colon);
+        else if (eq >= 0)
+            sep = eq;
+        else if (colon >= 0)
+            sep = colon;
+
+        if (sep < 0)
+        {
+            for (int i = 0; i < line.length(); i++)
+            {
+                if (Character.isWhitespace(line.charAt(i)))
+                    return i;
+            }
+        }
+        return sep;
     }
 
     /**
-     * Appends the given block to the file unless it already contains marker,
-     * so calling patchSpringConfig repeatedly (e.g. re-running the wizard
-     * against the same output directory) doesn't keep duplicating the block.
+     * Checks if the given YAML content defines spring.config.import
+     * (flat key, nested mapping, mixed, or indexed array key e.g. spring.config.import[0]).
+     * Ignores comments (#) and block scalars (| or >).
      */
-    private static void appendIfMissing(Path file, String block) throws IOException
+    public static boolean yamlDefinesImport(String yaml)
+    {
+        if (yaml == null || yaml.isBlank())
+            return false;
+
+        List<IndentEntry> stack = new ArrayList<>();
+        boolean inBlockScalar = false;
+        int blockScalarIndent = -1;
+
+        String[] lines = yaml.split("\\R");
+        for (String rawLine : lines)
+        {
+            if (rawLine.isBlank())
+                continue;
+
+            int indent = getIndent(rawLine);
+            String trimmed = rawLine.trim();
+
+            if (inBlockScalar)
+            {
+                if (indent > blockScalarIndent)
+                    continue;
+                inBlockScalar = false;
+                blockScalarIndent = -1;
+            }
+
+            if (trimmed.startsWith("#"))
+                continue;
+
+            if (trimmed.equals("---") || trimmed.equals("..."))
+            {
+                stack.clear();
+                continue;
+            }
+
+            if (trimmed.startsWith("-"))
+                continue;
+
+            int colonIdx = trimmed.indexOf(':');
+            if (colonIdx <= 0)
+                continue;
+
+            String keyPart = trimmed.substring(0, colonIdx).trim();
+            if ((keyPart.startsWith("\"") && keyPart.endsWith("\"")) ||
+                (keyPart.startsWith("'") && keyPart.endsWith("'")))
+            {
+                keyPart = keyPart.substring(1, keyPart.length() - 1);
+            }
+
+            while (!stack.isEmpty() && stack.get(stack.size() - 1).indent >= indent)
+            {
+                stack.remove(stack.size() - 1);
+            }
+
+            String currentPath = stack.isEmpty()
+                    ? keyPart
+                    : stack.get(stack.size() - 1).path + "." + keyPart;
+
+            if (isImportKey(currentPath))
+                return true;
+
+            String valuePart = trimmed.substring(colonIdx + 1).trim();
+            if (valuePart.startsWith("|") || valuePart.startsWith(">"))
+            {
+                inBlockScalar = true;
+                blockScalarIndent = indent;
+            }
+            else
+            {
+                stack.add(new IndentEntry(indent, currentPath));
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if non-comment properties content defines spring.config.import.
+     */
+    public static boolean propertiesDefinesImport(String properties)
+    {
+        if (properties == null || properties.isBlank())
+            return false;
+
+        String[] lines = properties.split("\\R");
+        for (String line : lines)
+        {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty() || trimmed.startsWith("#") || trimmed.startsWith("!"))
+                continue;
+
+            int sep = indexOfKeyValueSeparator(trimmed);
+            String key = (sep >= 0 ? trimmed.substring(0, sep) : trimmed).trim();
+            if (isImportKey(key))
+                return true;
+        }
+        return false;
+    }
+
+    private static boolean isImportKey(String path)
+    {
+        return IMPORT_KEY.equals(path) || path.startsWith(IMPORT_KEY + "[");
+    }
+
+    private static int getIndent(String line)
+    {
+        int count = 0;
+        while (count < line.length() && (line.charAt(count) == ' ' || line.charAt(count) == '\t'))
+            count += (line.charAt(count) == '\t' ? 2 : 1);
+        return count;
+    }
+
+    private record IndentEntry(int indent, String path) {}
+
+    private static void appendToYamlIfMissing(Path file, String block) throws IOException
     {
         String existing = Files.readString(file);
-        if (existing.contains("spring.config.import"))
+        if (yamlDefinesImport(existing))
             return;
-        Files.writeString(file, block, StandardOpenOption.APPEND);
+
+        // If multi-document YAML (contains "---"), prepend the block to document 1
+        if (existing.lines().anyMatch(l -> l.trim().equals("---")))
+        {
+            String newContent = block.stripLeading() + (existing.startsWith("\n") ? "" : "\n") + existing;
+            Files.writeString(file, newContent);
+        }
+        else
+        {
+            String formatted = formatBlockToAppend(existing, block);
+            Files.writeString(file, formatted, StandardOpenOption.APPEND);
+        }
+    }
+
+    private static void appendToPropsIfMissing(Path file, String block) throws IOException
+    {
+        String existing = Files.readString(file);
+        if (propertiesDefinesImport(existing))
+            return;
+
+        String formatted = formatBlockToAppend(existing, block);
+        Files.writeString(file, formatted, StandardOpenOption.APPEND);
+    }
+
+    private static String formatBlockToAppend(String existing, String block)
+    {
+        if (existing.isEmpty())
+            return block;
+        StringBuilder sb = new StringBuilder();
+        if (!existing.endsWith("\n") && !existing.endsWith("\r"))
+            sb.append(System.lineSeparator());
+        if (!existing.endsWith("\n\n") && !existing.endsWith("\r\n\r\n"))
+            sb.append(System.lineSeparator());
+        sb.append(block);
+        return sb.toString();
     }
 
     private static void ensureEnvIsIgnored(Path projectRoot) throws IOException
@@ -185,12 +350,12 @@ public class EnvFileWriter
         // to avoid creating both YAML and .properties in a fresh project.
         if (Files.exists(yaml))
         {
-            appendIfMissing(yaml, SPRING_CONFIG_IMPORT_YAML);
+            appendToYamlIfMissing(yaml, SPRING_CONFIG_IMPORT_YAML);
             return;
         }
         if (Files.exists(props))
         {
-            appendIfMissing(props, SPRING_CONFIG_IMPORT);
+            appendToPropsIfMissing(props, SPRING_CONFIG_IMPORT);
             return;
         }
 

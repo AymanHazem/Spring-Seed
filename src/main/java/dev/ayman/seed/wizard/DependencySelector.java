@@ -18,15 +18,7 @@ public class DependencySelector
     private final BufferedReader in;
     private final PrintWriter out;
 
-    public DependencySelector(List<Dependency> allDependencies)
-    {
-        this.allDependencies = allDependencies;
-        this.in = new BufferedReader(new InputStreamReader(System.in));
-        this.out = new PrintWriter(System.out, true);
-    }
-
-
-    DependencySelector(List<Dependency> allDependencies, BufferedReader in, PrintWriter out)
+    public DependencySelector(List<Dependency> allDependencies, BufferedReader in, PrintWriter out)
     {
         this.allDependencies = allDependencies;
         this.in = in;

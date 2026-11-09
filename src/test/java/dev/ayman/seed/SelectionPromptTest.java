@@ -16,17 +16,7 @@ class SelectionPromptTest {
     private static SelectionPrompt promptFor(String input) {
         BufferedReader reader = new BufferedReader(new StringReader(input));
         PrintWriter writer = new PrintWriter(new StringWriter());
-        return newPrompt(reader, writer);
-    }
-
-    private static SelectionPrompt newPrompt(BufferedReader reader, PrintWriter writer) {
-        try {
-            var ctor = SelectionPrompt.class.getDeclaredConstructor(BufferedReader.class, PrintWriter.class);
-            ctor.setAccessible(true);
-            return ctor.newInstance(reader, writer);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return new SelectionPrompt(reader, writer);
     }
 
     @Test

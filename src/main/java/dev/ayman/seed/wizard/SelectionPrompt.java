@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import static org.fusesource.jansi.Ansi.ansi;
@@ -19,16 +20,10 @@ public class SelectionPrompt
     private final BufferedReader in;
     private final PrintWriter out;
 
-    public SelectionPrompt()
+    public SelectionPrompt(BufferedReader in, PrintWriter out)
     {
-        this.in = new BufferedReader(new InputStreamReader(System.in));
-        this.out = new PrintWriter(System.out, true);
-    }
-
-    SelectionPrompt(BufferedReader in, PrintWriter out)
-    {
-        this.in = in;
-        this.out = out;
+        this.in = Objects.requireNonNull(in, "in");
+        this.out = Objects.requireNonNull(out, "out");
     }
 
     public ProjectType selectProjectType(List<ProjectType> options, String defaultId)

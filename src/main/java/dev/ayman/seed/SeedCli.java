@@ -15,7 +15,7 @@ import java.util.concurrent.Callable;
  * seed --version — prints version
  * seed --help — prints usage
  */
-@Command(name = "seed", version = "seed 1.0.0", mixinStandardHelpOptions = true, description = {
+@Command(name = "seed", version = "seed 1.1.0", mixinStandardHelpOptions = true, description = {
         "",
         "@|bold,green  Seed — Spring Boot projects, planted fast 🌱 CLI|@",
         " Bootstrap Spring Boot projects interactively from your terminal.",
@@ -34,7 +34,7 @@ public class SeedCli implements Callable<Integer>
     @Option(names = { "-r", "--refresh" }, description = "Force refresh the cached metadata from start.spring.io")
     private boolean refresh;
 
-    @Option(names = { "-p", "--path" }, paramLabel = "<path>", description = "Parent directory for the generated <artifact> project folder (default: home directory)")
+    @Option(names = { "-p", "--path" }, paramLabel = "<path>", description = "Parent directory for the generated <artifact> project folder (default: current directory)")
     private Path outputPath;
 
     @Override

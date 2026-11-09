@@ -9,6 +9,8 @@ import dev.ayman.seed.service.ProjectGeneratorService;
 import dev.ayman.seed.util.EnvFileWriter;
 import dev.ayman.seed.util.GitInitializer;
 import org.fusesource.jansi.AnsiConsole;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,17 +20,27 @@ public class WizardRunner
 {
     private final MetadataService metadataService;
     private final ProjectGeneratorService generatorService;
-    private final SelectionPrompt prompt;
-    private final PrintWriter out;
+    private final BufferedReader injectedIn;
+    private final PrintWriter injectedOut;
     private final boolean forceRefresh;
     private final Path requestedOutputPath;
 
+    private BufferedReader in;
+    private PrintWriter out;
+    private SelectionPrompt prompt;
+
     public WizardRunner(boolean forceRefresh, Path requestedOutputPath)
     {
-        this.metadataService = new MetadataService();
-        this.generatorService = new ProjectGeneratorService();
-        this.prompt = new SelectionPrompt();
-        this.out = new PrintWriter(System.out, true);
+        this(new MetadataService(), new ProjectGeneratorService(), null, null, forceRefresh, requestedOutputPath);
+    }
+
+    WizardRunner(MetadataService metadataService, ProjectGeneratorService generatorService,
+                 BufferedReader in, PrintWriter out, boolean forceRefresh, Path requestedOutputPath)
+    {
+        this.metadataService = metadataService;
+        this.generatorService = generatorService;
+        this.injectedIn = in;
+        this.injectedOut = out;
         this.forceRefresh = forceRefresh;
         this.requestedOutputPath = requestedOutputPath;
     }
@@ -39,6 +51,10 @@ public class WizardRunner
 
         try
         {
+            this.in = injectedIn != null ? injectedIn : new BufferedReader(new InputStreamReader(System.in));
+            this.out = injectedOut != null ? injectedOut : new PrintWriter(System.out, true);
+            this.prompt = new SelectionPrompt(in, out);
+
             printBanner();
             InitializrMetadata meta = metadataService.getMetadata(forceRefresh);
 
@@ -81,14 +97,14 @@ public class WizardRunner
 
             printStep(4, "Dependencies");
             List<Dependency> allDeps = flattenDependencies(meta);
-            DependencySelector depSelector = new DependencySelector(allDeps);
+            DependencySelector depSelector = new DependencySelector(allDeps, in, out);
             List<String> selectedDeps = depSelector.select();
             config.setDependencies(selectedDeps);
             printConfirm("Dependencies",
                             selectedDeps.isEmpty() ? "(none)" : String.join(", ", selectedDeps));
 
             printStep(5, "Project Metadata");
-            new MetadataForm(meta).fill(config);
+            new MetadataForm(meta, in, out).fill(config);
 
             config.setPackaging(askOption(6, "Packaging", meta.getPackaging()).getId());
             config.setJavaVersion(askOption(7, "Java Version", meta.getJavaVersion()).getId());
@@ -96,16 +112,7 @@ public class WizardRunner
             // ── Step 8: Output directory ──────────────────────────────────
             printStep(8, "Output Directory");
             Path outputPath = resolveOutputDirectory(requestedOutputPath, config.getArtifactId());
-            if (requestedOutputPath != null)
-            {
-                printConfirm("Output directory", outputPath.toString());
-            }
-            else
-            {
-                out.println(ansi().fgBrightYellow()
-                                .a("  Project will be created in your home directory: " + outputPath)
-                                .reset());
-            }
+            printConfirm("Output directory", outputPath.toString());
             config.setOutputDirectory(outputPath.toString());
 
 
@@ -159,7 +166,7 @@ public class WizardRunner
                         || artifactId.contains("/") || artifactId.contains("\\"))
             throw new IllegalArgumentException("Artifact must be a single directory name, without path separators.");
 
-        Path parent = requestedParent != null ? requestedParent : Path.of(System.getProperty("user.home"));
+        Path parent = requestedParent != null ? requestedParent : Path.of(System.getProperty("user.dir"));
         return parent.resolve(artifactId).toAbsolutePath().normalize();
     }
 

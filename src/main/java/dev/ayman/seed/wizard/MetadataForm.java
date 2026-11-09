@@ -14,11 +14,11 @@ public class MetadataForm
     private final PrintWriter out;
     private final InitializrMetadata meta;
 
-    public MetadataForm(InitializrMetadata meta)
+    public MetadataForm(InitializrMetadata meta, BufferedReader in, PrintWriter out)
     {
         this.meta = meta;
-        this.in = new BufferedReader(new InputStreamReader(System.in));
-        this.out = new PrintWriter(System.out, true);
+        this.in = in;
+        this.out = out;
     }
 
      //Runs the metadata form interactively and populates the config.
