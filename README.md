@@ -8,12 +8,12 @@
 
 **Spring Seed** is an interactive CLI for scaffolding Spring Boot projects with [Spring Initializr](https://start.spring.io). Choose your build system, language, Spring Boot version, dependencies, and project metadata without opening a browser. Seed downloads the project, prepares your configuration, and optionally sets up `.env` files and Git.
 
-Run it as a standalone **GraalVM native executable** or a **Java JAR**.
-
+---
 ## Features
 
 | Feature | Description |
 |---|---|
+| **Non-interactive / Flags mode** | Scaffold projects instantly with one command (e.g. `seed init my-app -d web,data-jpa --java 21`). |
 | **Interactive wizard** | Numbered prompts for project type, language, Spring Boot version, metadata, packaging, and Java version. |
 | **Fuzzy dependency search** | Search dependency names, IDs, and descriptions, with typo-tolerant matching and multi-selection. |
 | **Live Initializr metadata** | Fetch available options from `start.spring.io`, with a one-hour local cache and fallback to valid cached metadata if a refresh fails. |
@@ -23,12 +23,14 @@ Run it as a standalone **GraalVM native executable** or a **Java JAR**.
 | **`.env` bootstrapping** | Create `.env` and `.env.example`, ignore the local `.env` in Git, and configure Spring to load it. |
 | **Optional Git setup** | Initialize a repository and create an `Initial commit`. |
 
+---
 ## Quick Start
 
 ### Prerequisites
 
 - Linux (x86_64 / arm64), macOS (Apple Silicon / Intel), or WSL
 - Internet access
+- Git installed and configured (Optional , Just for git init phase)
 
 No Java installation is needed: Seed ships as a self-contained native binary.
 
@@ -86,13 +88,64 @@ https://github.com/user-attachments/assets/5fcc9d53-3d83-452a-86fc-dced7e001a88
 ### CLI Options
 
 ```bash
-seed                         # Start the interactive wizard
-seed -p ./projects           # Create ./projects/<artifact>
-seed --path /path/to/parent  # Choose a parent directory for the project
-seed --refresh              # Force re-fetch metadata (bypass the fresh cache)
-seed --version              # Print version
-seed --help                 # Show help
+seed                                      # Start the interactive wizard
+seed init my-app -d web,data-jpa --java 21 # One-shot generation (non-interactive)
+seed -p ./projects                        # Create ./projects/<artifact>
+seed --path /path/to/parent               # Choose a parent directory for the project
+seed --refresh                            # Force re-fetch metadata (bypass the fresh cache)
+seed --version                            # Print version
+seed --help                               # Show help
 ```
+
+### Non-Interactive Mode (One-Shot Project Generation)
+
+Scaffold a project instantly without prompts using `seed init` (or standard aliases `new`, `create`, or root options):
+
+```bash
+# Quick start: artifact name + dependencies
+seed init order-service -d web,data-jpa,postgresql,lombok
+
+# Specify Java version, build tool, and metadata
+seed init auth-service -d web,security -t maven-project -j 21 -g com.mycompany
+
+# Use build tool shortcuts ('maven' or 'gradle')
+seed init payments-api -d web -t maven -j 21
+
+# Use standard aliases or direct command
+seed new inventory-service -d web,mysql
+seed my-quick-app -d web,devtools --java 21
+
+# Enable Git & .env file generation
+seed init notification-service -d web,mail --git --env
+
+# Use properties instead of YAML (YAML is default)
+seed init legacy-service -d web --properties
+```
+
+#### Flags Reference
+
+| Flag | Short | Default | Description |
+|---|---|---|---|
+| `<artifact>` | | *metadata default* | Project artifact name (creates `./<artifact>`). |
+| `-d`, `--dependencies`, `--deps` | `-d` | | Comma-separated dependencies (e.g. `web,data-jpa,postgresql`). |
+| `-t`, `--type` | `-t` | Initializr default (`gradle-project`) | Project type (`gradle-project`, `maven-project`, or shortcuts `maven`, `gradle`). |
+| `-j`, `--java` | `-j` | Initializr default (`17`) | Java version (`17`, `21`, `25`, etc.). |
+| `-b`, `--boot-version` | `-b` | Initializr default | Spring Boot version. |
+| `-l`, `--language` | `-l` | Initializr default (`java`) | Language (`java`, `kotlin`, `groovy`). |
+| `-g`, `--group-id` | `-g` | Initializr default (`com.example`) | Group ID. |
+| `-n`, `--name` | `-n` | same as artifact | Project name. |
+| `--package-name` | | `<groupId>.<artifact>` | Package name. |
+| `--packaging` | | Initializr default (`jar`) | Packaging (`jar`, `war`). |
+| `-v`, `--version` | `-v` | Initializr default (`0.0.1-SNAPSHOT`) | Project version. |
+| `-p`, `--path` | `-p` | `.` (current directory) | Parent directory for the generated project. |
+| `--yaml` / `--no-yaml` | | `--yaml` (enabled) | Generate `application.yml` instead of `.properties`. |
+| `--properties` | | | Use standard `application.properties`. |
+| `--env` / `--no-env` | | `false` | Generate `.env` and `.env.example` templates. |
+| `--git` / `--no-git` | | `false` | Initialize a Git repository with an initial commit. |
+
+> [!TIP]
+> **Typo tolerance**: If you misspell a dependency (e.g. `-d postgres`), Seed automatically detects it and suggests the correct ID:
+> `✗ Error: Unknown dependency: 'postgres'. Did you mean 'postgresql'?`
 
 **Controls:**
 - Type a search query and press `Enter` to filter dependencies
@@ -188,19 +241,6 @@ spring:
 
 Keep real credentials in `.env`, and share only placeholder values in `.env.example`.
 
-## Git Setup
-
-When enabled, Seed runs `git init`, `git add .`, and `git commit -m "Initial commit"` in the generated project directory. `.env` is ignored before these commands run.
-
-Git must be installed and a commit identity must be configured. Check your identity before choosing Git initialization:
-
-```bash
-git config user.name
-git config user.email
-```
-
-If either value is missing, configure Git or answer `n` to the Git prompt. A Git setup failure is reported as an error; the generated project files remain on disk.
-
 ## Metadata Cache
 
 | Setting | Value |
@@ -216,41 +256,7 @@ If a refresh fails and valid cached metadata is available, Seed falls back to th
 
 **Caching does not make project generation offline:** downloading the project ZIP still requires access to `start.spring.io`.
 
-## Development
-
-```bash
-# Run the unit tests.
-mvn test
-
-# Build the executable JAR, including tests.
-mvn clean package
-
-# Build the native executable, including tests.
-mvn -Pnative clean package
-```
-
-> [!TIP]
-> You can also build a standard fat JAR (requires JDK 25, but no GraalVM) and run it with `java -jar`:
-> ```bash
-> mvn clean package
-> java -jar target/seed-1.0.0.jar
-> ```
-> The JAR accepts the same CLI options, including `--path` and `--refresh`.
-
-The test suite covers metadata parsing and validation, cache behavior, CLI options, prompts, dependency search, configuration generation, output-path resolution, and project ZIP extraction.
-
-### Releasing
-
-Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml): it runs the tests, builds native binaries for `linux-amd64`, `linux-arm64`, `darwin-arm64`, and `darwin-amd64`, and publishes them with `checksums.txt` to a GitHub Release. The installer always pulls from that release.
-
-```bash
-# The tag must match <version> in pom.xml (and the version string in SeedCli.java).
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-Tags containing `-` (e.g. `v1.1.0-beta.1`) are published as prereleases and are skipped by the default `latest` install.
-
+---
 ### Project structure
 
 ```text
@@ -279,13 +285,7 @@ src/
 
 Seed uses **Picocli** for CLI parsing, **Jackson** for JSON, **Jansi** for terminal styling, and Java's HTTP client for Initializr requests.
 
-### Troubleshooting
-
-- **Target directory is not empty:** choose a different artifact name or parent directory. Seed does not merge projects into existing directories.
-- **Git initialization fails:** verify that Git is installed and `user.name` / `user.email` are configured. You can initialize Git manually in the generated project afterward.
-- **Generation fails with a Gradle BOM error:** try Maven or retry later; the generation service may be unable to resolve the requested version.
-- **Need a stack trace:** run the JAR with `java -Dseed.debug=true -jar target/seed-1.0.0.jar`.
-
+---
 ## License
 
 Spring Seed is available under the [MIT License](LICENSE).

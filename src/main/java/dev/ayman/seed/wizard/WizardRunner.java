@@ -160,7 +160,7 @@ public class WizardRunner
         }
     }
 
-    static Path resolveOutputDirectory(Path requestedParent, String artifactId)
+    public static Path resolveOutputDirectory(Path requestedParent, String artifactId)
     {
         if (artifactId == null || artifactId.isBlank() || artifactId.equals(".") || artifactId.equals("..")
                         || artifactId.contains("/") || artifactId.contains("\\"))
