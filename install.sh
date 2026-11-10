@@ -1,5 +1,5 @@
 #!/bin/sh
-# Spring Seed installer — Linux, macOS, and WSL.
+# Spring Seed installer for Linux, macOS, and WSL.
 #
 #   curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | sh
 #
@@ -14,7 +14,7 @@ set -eu
 REPO="AymanHazem/Spring-Seed"
 BINARY="seed"
 
-if [ -t 1 ]; then
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
     BOLD="$(printf '\033[1m')"
     GREEN="$(printf '\033[32m')"
     BRIGHT_GREEN="$(printf '\033[1;32m')"
@@ -61,14 +61,12 @@ download() {
     url="$1"; out="$2"; show_progress="${3:-0}"
     if command -v curl >/dev/null 2>&1; then
         if [ "$show_progress" = "1" ] && [ -t 1 ]; then
-            # Display real-time progress bar with curl
             curl -fL --retry 3 --progress-bar -o "$out" "$url"
         else
             curl -fsSL --retry 3 -o "$out" "$url"
         fi
     elif command -v wget >/dev/null 2>&1; then
         if [ "$show_progress" = "1" ] && [ -t 1 ]; then
-            # Display progress bar with wget if supported
             if wget --help 2>&1 | grep -q -- '--show-progress'; then
                 wget -q --show-progress --retry-connrefused -O "$out" "$url"
             else
@@ -124,28 +122,53 @@ add_to_path() {
     NEEDS_PATH_HINT=1
 }
 
+resolve_latest_version() {
+    latest_url="https://github.com/${REPO}/releases/latest"
+    resolved_url=""
+    if command -v curl >/dev/null 2>&1; then
+        resolved_url="$(curl -fsSLI --connect-timeout 5 --max-time 10 -o /dev/null -w '%{url_effective}' "$latest_url" 2>/dev/null || true)"
+    elif command -v wget >/dev/null 2>&1; then
+        resolved_url="$(wget -S --spider -T 10 -O /dev/null "$latest_url" 2>&1 \
+            | sed -n 's/.*[Ll]ocation:[[:space:]]*\([^[:space:]]*\/releases\/tag\/[^[:space:]]*\).*/\1/p' \
+            | tail -n 1 || true)"
+    fi
+    resolved_url="$(printf '%s' "$resolved_url" | tr -d '\r')"
+    case "$resolved_url" in
+        */releases/tag/*)
+            tag="${resolved_url##*/releases/tag/}"
+            printf '%s\n' "${tag%%[?#]*}"
+            ;;
+    esac
+}
+
 main() {
     platform="$(detect_platform)"
     asset="${BINARY}-${platform}"
     version="${SEED_VERSION:-latest}"
+    version_display="$version"
     install_dir="${SEED_INSTALL_DIR:-$HOME/.local/bin}"
     NEEDS_PATH_HINT=0
 
     if [ -n "${SEED_DOWNLOAD_BASE_URL:-}" ]; then
         base_url="${SEED_DOWNLOAD_BASE_URL%/}"
     elif [ "$version" = "latest" ]; then
-        base_url="https://github.com/${REPO}/releases/latest/download"
+        resolved_version="$(resolve_latest_version)"
+        if [ -n "$resolved_version" ]; then
+            version_display="latest (${resolved_version})"
+            base_url="https://github.com/${REPO}/releases/download/${resolved_version}"
+        else
+            base_url="https://github.com/${REPO}/releases/latest/download"
+        fi
     else
         base_url="https://github.com/${REPO}/releases/download/${version}"
     fi
 
     printf '\n'
-    printf '  %s╔══════════════════════════════════════════════╗%s\n' "$BRIGHT_GREEN" "$RESET"
-    printf '  %s║          🌱  Spring Seed Installer           ║%s\n' "$BRIGHT_GREEN" "$RESET"
-    printf '  %s╚══════════════════════════════════════════════╝%s\n\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %sSpring Seed Installer%s\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %s--------------------%s\n\n' "$DIM" "$RESET"
 
     printf '  %sPlatform%s : %s\n' "$CYAN" "$RESET" "$platform"
-    printf '  %sVersion %s : %s\n' "$CYAN" "$RESET" "$version"
+    printf '  %sVersion %s : %s\n' "$CYAN" "$RESET" "$version_display"
     printf '  %sTarget  %s : %s/%s\n\n' "$CYAN" "$RESET" "$install_dir" "$BINARY"
 
     tmp="$(mktemp -d)"
@@ -192,9 +215,7 @@ main() {
     add_to_path "$install_dir"
 
     printf '\n'
-    printf '  %s╔══════════════════════════════════════════════╗%s\n' "$BRIGHT_GREEN" "$RESET"
-    printf '  %s║          🌱  Spring Seed is ready!           ║%s\n' "$BRIGHT_GREEN" "$RESET"
-    printf '  %s╚══════════════════════════════════════════════╝%s\n\n' "$BRIGHT_GREEN" "$RESET"
+    printf '  %sSpring Seed is ready.%s\n\n' "$BRIGHT_GREEN" "$RESET"
 
     if [ "$NEEDS_PATH_HINT" = "1" ]; then
         printf '  %sNote:%s Open a new terminal session, or run:\n\n' "$YELLOW" "$RESET"
@@ -203,9 +224,8 @@ main() {
 
     printf '  %sQuick Start:%s\n' "$CYAN" "$RESET"
     printf '    %sseed%s                                 %s# Interactive wizard%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
-    printf '    %sseed init my-app -d web,data-jpa%s     %s# Instant generation%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+    printf '    %sseed init my-app -d web,data-jpa%s     %s# Non-interactive generation%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
     printf '    %sseed update%s                          %s# Check for updates%s\n\n' "$BOLD" "$RESET" "$DIM" "$RESET"
-    printf '  %sHappy coding!%s 🌱\n\n' "$BRIGHT_GREEN" "$RESET"
 }
 
 main "$@"

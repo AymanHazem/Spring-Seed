@@ -2,9 +2,6 @@ package dev.ayman.seed.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * Model representing cached update check state.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateInfo
 {

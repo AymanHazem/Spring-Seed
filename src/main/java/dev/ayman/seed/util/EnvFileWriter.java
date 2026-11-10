@@ -14,7 +14,7 @@ public class EnvFileWriter
 {
     private static final String ENV_CONTENT = """
             # Environment variables for local development
-            # This file is excluded from version control — never commit secrets!
+            # This file is excluded from version control. Never commit secrets.
             
             # Example:
             # DATABASE_URL=jdbc:postgresql://localhost:5432/mydb
@@ -44,40 +44,27 @@ public class EnvFileWriter
 
     private EnvFileWriter() {}
 
-    /**
-     * Creates .env and .env.example in projectRoot, then patches the Spring config
-     * file.
-     */
     public static void writeEnvFiles(Path projectRoot, boolean useYaml) throws IOException
     {
         ensureEnvIsIgnored(projectRoot);
 
-        // Create .env — never overwrite an existing one, since it may already
-        // contain real secrets from a previous run.
+        // Preserve an existing .env because it may hold real secrets.
         Path envFile = projectRoot.resolve(".env");
         if (!Files.exists(envFile))
         {
             Files.writeString(envFile, ENV_CONTENT, StandardOpenOption.CREATE);
         }
 
-        // Create/refresh .env.example — safe to overwrite, it's just a template
-        // with no real values.
         Path envExampleFile = projectRoot.resolve(".env.example");
         Files.writeString(envExampleFile, ENV_EXAMPLE_CONTENT, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING);
 
-        // Patch application config
         patchSpringConfig(projectRoot, useYaml);
     }
 
     /**
-     * Normalize the project's configuration format so that only the selected
-     * format is present on disk.
-     * If useYaml is true and an application.properties file exists, any real
-     * (non-comment, non-blank) lines it contains are converted to YAML and
-     * appended to application.yml, then application.properties is removed —
-     * so no configuration is lost, and the project ends up with exactly one
-     * config file matching the user's choice (no leftover .bak file).
+     * Migrates application.properties entries into application.yml when YAML is selected
+     * and deletes application.properties so only one config file remains.
      */
     public static void normalizeConfigFormat(Path projectRoot, boolean useYaml) throws IOException
     {
@@ -92,7 +79,6 @@ public class EnvFileWriter
                 List<String> meaningfulLines = meaningfulPropertyLines(props);
                 if (!meaningfulLines.isEmpty())
                 {
-                    // Migrate real configuration into YAML instead of discarding it.
                     String block = meaningfulLines.stream()
                             .map(EnvFileWriter::propertyLineToYaml)
                             .collect(Collectors.joining("\n", "", "\n"));
@@ -108,10 +94,6 @@ public class EnvFileWriter
         }
     }
 
-    /**
-     * Returns the non-blank, non-comment ("#"/"!" prefix) lines of a .properties
-     * file, trimmed.
-     */
     private static List<String> meaningfulPropertyLines(Path file) throws IOException
     {
         try (var lines = Files.lines(file))
@@ -123,11 +105,8 @@ public class EnvFileWriter
     }
 
     /**
-     * Converts a single "key=value" (or "key:value") .properties line into an
-     * equivalent flat YAML mapping entry, e.g. "server.port=8080" becomes
-     * server.port: "8080". The value is always double-quoted so arbitrary
-     * property values (colons, special characters, etc.) remain valid YAML;
-     * Spring's relaxed binding handles quoted scalars the same as unquoted ones.
+     * Converts a "key=value" property line to YAML, double-quoting values so
+     * special characters remain valid under Spring relaxed binding.
      */
     private static String propertyLineToYaml(String propertyLine)
     {
@@ -215,14 +194,14 @@ public class EnvFileWriter
                 keyPart = keyPart.substring(1, keyPart.length() - 1);
             }
 
-            while (!stack.isEmpty() && stack.get(stack.size() - 1).indent >= indent)
+            while (!stack.isEmpty() && stack.getLast().indent >= indent)
             {
-                stack.remove(stack.size() - 1);
+                stack.removeLast();
             }
 
             String currentPath = stack.isEmpty()
                     ? keyPart
-                    : stack.get(stack.size() - 1).path + "." + keyPart;
+                    : stack.getLast().path + "." + keyPart;
 
             if (isImportKey(currentPath))
                 return true;
@@ -242,9 +221,6 @@ public class EnvFileWriter
         return false;
     }
 
-    /**
-     * Checks if non-comment properties content defines spring.config.import.
-     */
     public static boolean propertiesDefinesImport(String properties)
     {
         if (properties == null || properties.isBlank())
@@ -359,7 +335,6 @@ public class EnvFileWriter
             return;
         }
 
-        // If no config file exists yet, create one in the preferred format.
         Files.createDirectories(resourcesDir);
         if (useYaml)
             Files.writeString(yaml, SPRING_CONFIG_IMPORT_YAML, StandardOpenOption.CREATE_NEW);

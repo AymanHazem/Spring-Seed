@@ -51,12 +51,10 @@ class ProjectGeneratorServiceTest {
 
     @Test
     void extractZipRefusesToOverwriteNonEmptyTargetDirectory(@TempDir Path tempDir) throws Exception {
-        // Regression test for Rank 5: extracting into a directory that already has
-        // unrelated content must not silently overwrite it.
         Path target = tempDir.resolve("existing-project");
         Files.createDirectories(target);
         Path preexisting = target.resolve("pom.xml");
-        Files.writeString(preexisting, "MY REAL PROJECT — DO NOT TOUCH");
+        Files.writeString(preexisting, "MY REAL PROJECT: DO NOT TOUCH");
 
         byte[] zip = zipWithSingleFile("pom.xml", "<project>generated</project>");
 
@@ -64,8 +62,7 @@ class ProjectGeneratorServiceTest {
         IOException ex = assertThrows(IOException.class, () -> service.extractZip(zip, target));
         assertTrue(ex.getMessage().contains("not empty"));
 
-        // The original file must be untouched.
-        assertEquals("MY REAL PROJECT — DO NOT TOUCH", Files.readString(preexisting));
+        assertEquals("MY REAL PROJECT: DO NOT TOUCH", Files.readString(preexisting));
     }
 
     @Test
@@ -94,13 +91,7 @@ class ProjectGeneratorServiceTest {
 
     @Test
     void buildFailureMessageAddsGradleHintForKnownBomResolutionFailure() {
-        // Regression test for the real-world case reported against Seed: choosing
-        // Gradle currently fails on start.spring.io's side because it can't resolve
-        // the Spring Boot BOM for Gradle builds. Verified independently against the
-        // live start.spring.io API (Maven succeeds, Gradle fails for every boot
-        // version) — this is an upstream issue, not something Seed's request is
-        // doing wrong, so the message should say so instead of just showing the
-        // raw Spring stack trace text.
+        // Upstream start.spring.io Gradle BOM failures should surface an actionable hint.
         ProjectConfig config = new ProjectConfig();
         config.setType("gradle-project");
         byte[] body = ("{\"message\":\"Failed to instantiate [GradleBuild]: Factory method " +
@@ -118,13 +109,7 @@ class ProjectGeneratorServiceTest {
 
     @Test
     void buildUrlStripsReleaseSuffixFromBootVersion() {
-        // Regression test: sending the raw ".RELEASE"-suffixed id (as returned by
-        // start.spring.io's own metadata) breaks Gradle project generation with an
-        // HTTP 500, because start.spring.io can't resolve that BOM coordinate on
-        // Maven Central. Verified independently against the live start.spring.io
-        // API: bootVersion=4.0.7.RELEASE + Gradle -> HTTP 500, bootVersion=4.0.7 +
-        // Gradle -> HTTP 200. Maven works fine either way, so stripping the
-        // suffix is safe for both build systems.
+        // Gradle builds on start.spring.io return HTTP 500 for ".RELEASE"-suffixed bootVersion IDs.
         ProjectConfig config = new ProjectConfig();
         config.setType("gradle-project");
         config.setLanguage("java");
@@ -142,8 +127,7 @@ class ProjectGeneratorServiceTest {
 
     @Test
     void buildUrlLeavesSnapshotBootVersionUntouched() {
-        // Snapshot qualifiers are real, currently-published coordinates (unlike
-        // the legacy ".RELEASE" convention), so they must not be stripped.
+        // Snapshot qualifiers are valid coordinates and must not be stripped.
         ProjectConfig config = new ProjectConfig();
         config.setType("gradle-project");
         config.setBootVersion("4.1.1.BUILD-SNAPSHOT");
@@ -160,9 +144,6 @@ class ProjectGeneratorServiceTest {
 
     @Test
     void buildFailureMessageDoesNotAddGradleHintForMavenProjects() {
-        // The same BOM-resolution error text should not trigger the Gradle-specific
-        // hint when the project type is Maven (where this failure mode doesn't
-        // occur in practice).
         ProjectConfig config = new ProjectConfig();
         config.setType("maven-project");
         byte[] body = "{\"message\":\"Bom 'x:y:1.0.RELEASE' could not be resolved\"}"

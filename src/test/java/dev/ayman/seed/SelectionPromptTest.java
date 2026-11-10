@@ -41,7 +41,7 @@ class SelectionPromptTest {
 
     @Test
     void noReturnsFalse() {
-        // Regression test for Rank 1: "no" used to be treated as "yes".
+        // "no" must return false instead of falling through to true.
         assertFalse(promptFor("no\n").askYesNo("Continue?"));
     }
 
@@ -53,8 +53,6 @@ class SelectionPromptTest {
 
     @Test
     void invalidInputRePromptsUntilValidAnswerGiven() {
-        // First line is garbage, second line is a valid "no" — the method must
-        // re-prompt instead of guessing.
         assertFalse(promptFor("maybe\nno\n").askYesNo("Continue?"));
     }
 
@@ -62,5 +60,11 @@ class SelectionPromptTest {
     void eofCancelsWizard() {
         assertThrows(WizardCancelledException.class,
                 () -> promptFor("").askYesNo("Continue?"));
+    }
+
+    @Test
+    void emptyOptionListThrowsClearError() {
+        assertThrows(IllegalStateException.class,
+                () -> promptFor("").selectOption("Language", java.util.List.of(), null));
     }
 }

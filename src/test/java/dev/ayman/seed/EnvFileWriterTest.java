@@ -51,7 +51,7 @@ class EnvFileWriterTest {
 
         assertFalse(Files.exists(props), "application.properties should be removed once migrated");
         assertFalse(Files.exists(resourcesDir.resolve("application.properties.bak")),
-                "no backup file should be left behind — content is migrated into application.yml instead");
+                "no backup file should be left behind; content is migrated into application.yml instead");
 
         Path yaml = resourcesDir.resolve("application.yml");
         assertTrue(Files.exists(yaml));
@@ -77,8 +77,6 @@ class EnvFileWriterTest {
 
     @Test
     void normalizeConfigFormatLeavesOnlyOneConfigFileAfterMigration(@TempDir Path projectRoot) throws Exception {
-        // Regression test: after switching to YAML, exactly one config file
-        // (application.yml) should remain — no application.properties, no .bak.
         Path resourcesDir = projectRoot.resolve("src/main/resources");
         Files.createDirectories(resourcesDir);
         Files.writeString(resourcesDir.resolve("application.properties"),
@@ -108,8 +106,7 @@ class EnvFileWriterTest {
 
     @Test
     void writeEnvFilesIsSafeToRunTwice(@TempDir Path projectRoot) throws Exception {
-        // Regression test for Rank 3: re-running against the same output directory
-        // used to throw FileAlreadyExistsException.
+        // Re-running on the same directory must not throw FileAlreadyExistsException.
         assertDoesNotThrow(() -> EnvFileWriter.writeEnvFiles(projectRoot, false));
         assertDoesNotThrow(() -> EnvFileWriter.writeEnvFiles(projectRoot, false));
 
@@ -251,7 +248,6 @@ class EnvFileWriterTest {
 
         String content = Files.readString(props);
         assertTrue(EnvFileWriter.propertiesDefinesImport(content));
-        // Verify real property was appended
         assertTrue(content.contains("spring.config.import=optional:file:.env[.properties]"));
     }
 

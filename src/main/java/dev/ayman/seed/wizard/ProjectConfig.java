@@ -1,10 +1,7 @@
 package dev.ayman.seed.wizard;
 import java.util.ArrayList;
 import java.util.List;
-/**
- * Holds all user-selected configuration options for the Spring Boot project.
- * This is the data object passed from the wizard to the generator.
- */
+
 public class ProjectConfig
 {
 
@@ -153,7 +150,7 @@ public class ProjectConfig
         this.outputDirectory = outputDirectory;
     }
 
-    /** Derive package name from groupId + artifactId (replaces hyphens). */
+    /** Strips non-alphanumeric characters from artifactId to derive a valid package segment. */
     public String derivePackageName()
     {
         String safe = (artifactId == null ? "" : artifactId).replaceAll("[^a-zA-Z0-9]", "").toLowerCase();

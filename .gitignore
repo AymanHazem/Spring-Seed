@@ -1,21 +1,23 @@
-# ── Build outputs ──────────────────────────
+# Build outputs
 target/
 
-# ── IDE files ──────────────────────────────
+# IDE
 .idea/
 *.iml
 .vscode/
 *.class
 .archify/
-# ── Environment & secrets ──────────────────
+
+# Environment and secrets
 .env
 !.env.example
 
-# ── OS files ───────────────────────────────
+# OS
 .DS_Store
 Thumbs.db
 
-# ── Cache ──────────────────────────────────
+# Cache
 ~/.cache/seed/
 
 .sdkmanrc
+/anti-slop/

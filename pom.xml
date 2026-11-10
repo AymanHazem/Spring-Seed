@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>seed</name>
-    <description>Seed — Spring Boot project scaffolding CLI</description>
+    <description>Seed: Spring Boot project scaffolding CLI</description>
 
     <properties>
         <java.version>25</java.version>
@@ -18,7 +18,6 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Dependency versions -->
         <picocli.version>4.7.6</picocli.version>
         <jackson.version>2.20.2</jackson.version>
         <jansi.version>2.4.2</jansi.version>
@@ -26,31 +25,24 @@
     </properties>
 
     <dependencies>
-        <!-- ── CLI Framework ── -->
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>${picocli.version}</version>
         </dependency>
 
-        <!-- ── JSON ── -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
 
-        <!-- ── Terminal TUI ── -->
-        
-
-        <!-- ── ANSI Colors (fallback / Windows) ── -->
         <dependency>
             <groupId>org.fusesource.jansi</groupId>
             <artifactId>jansi</artifactId>
             <version>${jansi.version}</version>
         </dependency>
 
-        <!-- ── Testing ── -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -67,7 +59,7 @@
 
     <build>
         <plugins>
-            <!-- Annotation processor for Picocli (generates completion + native hints) -->
+            <!-- Annotation processor generates Picocli completion and GraalVM native hints -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -86,7 +78,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -117,7 +108,6 @@
                 </executions>
             </plugin>
 
-            <!-- Tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -126,7 +116,6 @@
         </plugins>
     </build>
 
-    <!-- GraalVM Native Image profile -->
     <profiles>
         <profile>
             <id>native</id>
@@ -153,7 +142,6 @@
                                 <buildArg>-march=compatibility</buildArg>
                                 <buildArg>--enable-url-protocols=https,http</buildArg>
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>
-                                <buildArg>--initialize-at-build-time=org.fusesource.jansi</buildArg>
                             </buildArgs>
                         </configuration>
                     </plugin>

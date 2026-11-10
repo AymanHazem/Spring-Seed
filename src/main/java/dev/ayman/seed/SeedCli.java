@@ -14,32 +14,25 @@ import picocli.CommandLine.Option;
 import java.util.concurrent.Callable;
 
 /**
- * Entry point for the Seed CLI tool.
- * Usage:
- * seed — runs the interactive wizard
- * seed init my-app -d web,data-jpa — generates project non-interactively
- * seed -p /path/to/parent — creates an artifact-named project folder inside the given path
- * seed --refresh — re-fetches metadata ignoring cache
- * seed --version — prints version
- * seed --help — prints usage
+ * Entry point for the Seed CLI.
  */
 @Command(name = "seed", version = "seed 1.1.0", mixinStandardHelpOptions = true,
         subcommands = { InitCommand.class, UpdateCommand.class, CommandLine.HelpCommand.class },
         description = {
                 "",
-                "@|bold,green  Seed — Spring Boot projects, planted fast 🌱 CLI|@",
+                "@|bold,green  Seed: Spring Boot project scaffolding CLI|@",
                 " Bootstrap Spring Boot projects interactively or via flags from your terminal.",
-                " Powered by @|underline https://start.spring.io|@",
+                " Uses @|underline https://start.spring.io|@",
                 ""
         }, footer = {
                 "",
                 "  Examples:",
-                "    @|yellow seed|@                                — start the interactive wizard",
-                "    @|yellow seed init my-app -d web,data-jpa|@     — scaffold non-interactively in one second",
-                "    @|yellow seed my-app -d web,lombok --java 21|@ — quick generation without 'init'",
-                "    @|yellow seed update|@                         — check for updates from GitHub Releases",
-                "    @|yellow seed -p ./projects|@                  — create ./projects/<artifact>",
-                "    @|yellow seed --refresh|@                      — force re-fetch of metadata from start.spring.io",
+                "    @|bold seed|@                                : start the interactive wizard",
+                "    @|bold seed init my-app -d web,data-jpa|@     : scaffold without prompts",
+                "    @|bold seed my-app -d web,lombok --java 21|@ : quick generation without 'init'",
+                "    @|bold seed update|@                         : check GitHub Releases for updates",
+                "    @|bold seed -p ./projects|@                  : create ./projects/<artifact>",
+                "    @|bold seed --refresh|@                      : force metadata refresh",
                 ""
         })
 public class SeedCli implements Callable<Integer>

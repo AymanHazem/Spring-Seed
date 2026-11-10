@@ -38,10 +38,6 @@ public class ProjectGeneratorService
                 .build();
     }
 
-    /**
-     * Generates a Spring Boot project and extracts it to the given output
-     * directory.
-     */
     public void generate(ProjectConfig config, Path outputDir) throws IOException, InterruptedException
     {
         String url = buildUrl(config);
@@ -62,16 +58,8 @@ public class ProjectGeneratorService
         postProcessGeneratedProject(config, outputDir);
     }
 
-    /**
-     * Builds a clear, actionable error message for a failed start.spring.io
-     * request. start.spring.io returns a small JSON body with a "message"
-     * field on error (typically an internal Spring exception message); this
-     * surfaces that instead of the full raw JSON blob, and adds a hint when the
-     * failure looks like a known upstream Gradle/BOM-resolution issue on
-     * start.spring.io's side rather than anything Seed can fix.
-     */
-    // Package-visible (not private) so the message-building logic can be unit
-    // tested directly without needing a real HTTP call to start.spring.io.
+    /** Surfaces the error "message" from start.spring.io JSON and adds a hint for known upstream Gradle BOM failures. */
+    // Package-private for unit tests.
     String buildFailureMessage(ProjectConfig config, int statusCode, byte[] body)
     {
         String raw = new String(body, StandardCharsets.UTF_8);
@@ -79,7 +67,7 @@ public class ProjectGeneratorService
         String shown = (detail != null && !detail.isBlank()) ? detail : raw;
 
         StringBuilder message = new StringBuilder("Failed to generate project: HTTP ").append(statusCode)
-                .append(" — ").append(shown);
+                .append(": ").append(shown);
 
         boolean isGradleProject = config.getType() != null && config.getType().startsWith("gradle");
         boolean looksLikeBomResolutionFailure = shown.contains("could not be resolved") || shown.contains("Bom '");
@@ -95,11 +83,6 @@ public class ProjectGeneratorService
         return message.toString();
     }
 
-    /**
-     * Extracts the "message" field from a start.spring.io JSON error body, if
-     * present and parseable. Returns null if the body isn't JSON or has no such
-     * field, so callers can fall back to showing the raw body.
-     */
     private String extractJsonMessage(String raw)
     {
         try
@@ -113,8 +96,7 @@ public class ProjectGeneratorService
         }
     }
 
-    // Package-visible (not private) so the URL-building logic (including boot
-    // version normalization) can be unit tested directly.
+    // Package-private for unit tests.
     String buildUrl(ProjectConfig config)
     {
         Map<String, String> params = new LinkedHashMap<>();
@@ -151,20 +133,16 @@ public class ProjectGeneratorService
         return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 
-    // Package-visible (not private) so it can be unit tested directly with an
-    // in-memory zip, without requiring a real HTTP call to start.spring.io.
+    // Package-private for unit tests.
     void extractZip(byte[] zipBytes, Path targetDir) throws IOException
     {
-        // Normalise to absolute path BEFORE the loop so startsWith() works correctly
-        // even when targetDir is a relative path like ./my-app
+        // Normalize to an absolute path so relative targets work with startsWith().
         Path canonicalTarget = targetDir.toAbsolutePath().normalize();
 
-        // Refuse to extract into a directory that already has content: the default
-        // Files.write() open options (CREATE + TRUNCATE_EXISTING) would otherwise
-        // silently overwrite any pre-existing file at a matching relative path.
+        // Reject non-empty directories because Files.write truncates matching paths.
         if (isNonEmptyDirectory(canonicalTarget))
             throw new IOException("Target directory already exists and is not empty: " + canonicalTarget
-                    + " — refusing to overwrite existing files. Choose an empty or new directory.");
+                    + ": refusing to overwrite existing files. Choose an empty or new directory.");
 
         Files.createDirectories(canonicalTarget);
 
@@ -175,7 +153,7 @@ public class ProjectGeneratorService
             {
                 Path resolved = canonicalTarget.resolve(entry.getName()).normalize();
 
-                // Zip slip protection — both paths are now absolute+normalized
+                // Prevent zip slip outside canonicalTarget.
                 if (!resolved.startsWith(canonicalTarget))
                     throw new IOException("Zip slip attack detected: " + entry.getName());
 

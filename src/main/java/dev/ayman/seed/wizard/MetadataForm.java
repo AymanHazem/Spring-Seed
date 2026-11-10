@@ -1,16 +1,13 @@
 package dev.ayman.seed.wizard;
 
 import dev.ayman.seed.model.InitializrMetadata;
+import dev.ayman.seed.util.TerminalUi;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
-/**
- * Collects project metadata from the user (groupId, artifactId, name, etc.)
- * using a simple labeled-input form pattern.
- */
 public class MetadataForm
 {
     private final BufferedReader in;
@@ -24,15 +21,14 @@ public class MetadataForm
         this.out = out;
     }
 
-     //Runs the metadata form interactively and populates the config.
     public void fill(ProjectConfig config) throws Exception
     {
-        out.println(ansi().bold().fgBrightCyan().a(
-                "\n  ┌─ Project Metadata ──────────────────────────").reset());
-        out.println(ansi().fgBrightBlack().a(
-                "  │  Press ENTER to accept the default in [brackets]").reset());
-        out.println(ansi().fgBrightCyan().a(
-                "  └──────────────────────────────────────────────").reset());
+        out.println(ansi().bold().fgCyan().a(
+                "\n  ┌─ Project Metadata " + "─".repeat(36)).reset());
+        out.println(TerminalUi.faint(
+                "  │  Press ENTER to accept the default in [brackets]"));
+        out.println(ansi().fgCyan().a(
+                "  └" + "─".repeat(55)).reset());
 
         String groupDefault = meta.getGroupId().getDefaultValue();
         String groupId = prompt("  Group          ", groupDefault);
@@ -42,8 +38,7 @@ public class MetadataForm
         String artifactId = prompt("  Artifact       ", artifactDefault);
         config.setArtifactId(artifactId.isBlank() ? artifactDefault : artifactId);
 
-        String name = prompt("  Application" +
-                " Name           ", config.getArtifactId());
+        String name = prompt("  App Name       ", config.getArtifactId());
         config.setName(name.isBlank() ? config.getArtifactId() : name);
 
         String descriptionDefault = optionalDefault(meta.getDescription());
@@ -54,7 +49,7 @@ public class MetadataForm
         String version = prompt("  Version        ", versionDefault);
         config.setVersion(version.isBlank() ? versionDefault : version);
 
-        String packageName = prompt("  Package name is :   ", config.derivePackageName());
+        String packageName = prompt("  Package        ", config.derivePackageName());
         config.setPackageName(packageName.isBlank() ? config.derivePackageName() : packageName);
     }
 
@@ -66,11 +61,10 @@ public class MetadataForm
     private String prompt(String label, String defaultValue) throws Exception
     {
         String defaultDisplay = (defaultValue != null && !defaultValue.isBlank())
-                ? ansi().fgBrightBlack().a(" [" + defaultValue + "]").reset().toString()
+                ? TerminalUi.faint(" [" + defaultValue + "]")
                 : "";
 
-        out.print(ansi().fgBrightYellow().a(label).reset().a(defaultDisplay)
-                .fgBrightYellow().a(" ").reset());
+        out.print(ansi().bold().a(label).reset().a(defaultDisplay).a(" "));
         out.flush();
 
         String line = in.readLine();

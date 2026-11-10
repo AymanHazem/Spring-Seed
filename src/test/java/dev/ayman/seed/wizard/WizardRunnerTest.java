@@ -122,24 +122,9 @@ class WizardRunnerTest {
 
     @Test
     void completeTranscriptFlowsThroughEveryStep(@TempDir Path tempDir) throws Exception {
-        // Inputs:
-        // 1. Project Type: '2' -> Maven
-        // 2. Language: '' -> default (Java)
-        // 3. Boot Version: '' -> default (4.0.3)
-        // 4. Dependencies: 'web' -> '1' (toggle) -> '' (done)
-        // 5. Metadata:
-        //    Group: 'dev.ayman'
-        //    Artifact: 'orders'
-        //    Name: '' (default orders)
-        //    Description: '' (default)
-        //    Version: '' (default)
-        //    Package: '' (default derived)
-        // 6. Packaging: '' -> default (Jar)
-        // 7. Java Version: '1' -> 21
-        // 8. Output directory resolved to tempDir/orders
-        // 9. YAML: 'y'
-        // 10. .env: 'y'
-        // 11. Git: 'n'
+        // Lines map to: type(2=Maven), lang(''), boot(''), deps('web','1',''),
+        // metadata(group, artifact, name, desc, ver, pkg), packaging(''), java('1'=21),
+        // yaml('y'), env('y'), git('n').
         String input = """
                 2
                 
@@ -193,11 +178,15 @@ class WizardRunnerTest {
         assertTrue(yamlContent.contains("spring.application.name: \"orders\""));
         assertTrue(yamlContent.contains("spring.config.import"));
         assertFalse(Files.exists(projectDir.resolve("src/main/resources/application.properties")));
+
+        String console = capturedOut.toString();
+        assertTrue(console.contains("███████╗███████╗███████╗██████╗"));
+        assertTrue(console.contains("Fetching Spring Initializr metadata..."));
+        assertTrue(console.contains("Project Created"));
     }
 
     @Test
     void eofMidWizardCancelsWithoutGenerating(@TempDir Path tempDir) {
-        // Input ends abruptly during metadata form
         String input = """
                 2
                 

@@ -10,9 +10,6 @@ public class GitInitializer
 {
     private GitInitializer() {}
 
-    /**
-     * Runs: git init → git add . → git commit -m "Initial commit"
-     */
     public static void init(Path projectDir) throws IOException, InterruptedException
     {
         run(projectDir, "git", "init");

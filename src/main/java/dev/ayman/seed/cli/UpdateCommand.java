@@ -1,7 +1,7 @@
 package dev.ayman.seed.cli;
 
 import dev.ayman.seed.service.UpdateService;
-import org.fusesource.jansi.AnsiConsole;
+import dev.ayman.seed.util.TerminalUi;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -47,7 +47,7 @@ public class UpdateCommand implements Callable<Integer>
         boolean manageAnsi = (injectedOut == null && injectedErr == null);
         if (manageAnsi)
         {
-            AnsiConsole.systemInstall();
+            TerminalUi.installConsole();
         }
 
         PrintWriter out = injectedOut != null ? injectedOut : new PrintWriter(System.out, true);
@@ -56,7 +56,7 @@ public class UpdateCommand implements Callable<Integer>
         try
         {
             out.println();
-            out.println(ansi().fgBrightBlack().a("  ⟳ Checking for updates...").reset());
+            out.println(TerminalUi.faint("  ⟳ Checking for updates..."));
             out.flush();
 
             UpdateService.CheckResult result = updateService.checkExplicitly(forceRefresh);
@@ -69,13 +69,13 @@ public class UpdateCommand implements Callable<Integer>
                 }
                 case UP_TO_DATE -> {
                     String v = result.currentVersion().startsWith("v") ? result.currentVersion() : "v" + result.currentVersion();
-                    out.println(ansi().fgBrightGreen().a("  ✔ Spring Seed is up to date (" + v + ").").reset());
+                    out.println(ansi().fgGreen().a("  ✔ Spring Seed is up to date (" + v + ").").reset());
                     out.println();
                     out.flush();
                     return 0;
                 }
                 case ERROR -> {
-                    err.println(ansi().fgBrightRed().a("  ✗ Failed to check for updates: " + result.errorMessage()).reset());
+                    err.println(ansi().fgRed().a("  ✗ Failed to check for updates: " + result.errorMessage()).reset());
                     err.println();
                     err.flush();
                     return 1;
@@ -87,7 +87,7 @@ public class UpdateCommand implements Callable<Integer>
         {
             if (manageAnsi)
             {
-                AnsiConsole.systemUninstall();
+                TerminalUi.uninstallConsole();
             }
         }
     }

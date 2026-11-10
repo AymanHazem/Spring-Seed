@@ -6,7 +6,7 @@ import dev.ayman.seed.service.ProjectGeneratorService;
 import dev.ayman.seed.service.UpdateService;
 import dev.ayman.seed.util.EnvFileWriter;
 import dev.ayman.seed.util.GitInitializer;
-import org.fusesource.jansi.AnsiConsole;
+import dev.ayman.seed.util.TerminalUi;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -57,7 +57,7 @@ public class WizardRunner
 
     public void run() throws Exception
     {
-        AnsiConsole.systemInstall();
+        TerminalUi.installConsole();
 
         try
         {
@@ -67,6 +67,8 @@ public class WizardRunner
 
             updateService.startBackgroundCheck();
             printBanner();
+            out.println(TerminalUi.faint("  ⟳ Fetching Spring Initializr metadata..."));
+            out.flush();
             InitializrMetadata meta = metadataService.getMetadata(forceRefresh);
 
             ProjectConfig config = new ProjectConfig();
@@ -87,9 +89,9 @@ public class WizardRunner
             List<Option> bootVersionOptions = selectableBootVersions(allBootVersions, selectedType.getId());
             if (bootVersionOptions.size() < allBootVersions.size())
             {
-                out.println(ansi().fgBrightBlack()
-                                .a("  (SNAPSHOT/milestone versions hidden — they currently fail to generate ")
-                                .a("Gradle projects on start.spring.io)").reset());
+                out.println(TerminalUi.faint(
+                                "  (SNAPSHOT/milestone versions hidden: they currently fail to generate "
+                                + "Gradle projects on start.spring.io)"));
             }
             Option selectedBoot = prompt.selectOption("Spring Boot Version",
                             bootVersionOptions,
@@ -101,7 +103,7 @@ public class WizardRunner
             {
                 out.println(ansi().fgYellow()
                                 .a("  ⚠ Warning: SNAPSHOT/milestone Spring Boot versions currently fail to ")
-                                .a("generate Gradle projects on start.spring.io (a known upstream issue — ")
+                                .a("generate Gradle projects on start.spring.io (a known upstream issue: ")
                                 .a("the Spring Boot BOM can't be resolved for Gradle builds). ")
                                 .a("Maven works fine with this version.").reset());
             }
@@ -120,7 +122,6 @@ public class WizardRunner
             config.setPackaging(askOption(6, "Packaging", meta.getPackaging()).getId());
             config.setJavaVersion(askOption(7, "Java Version", meta.getJavaVersion()).getId());
 
-            // ── Step 8: Output directory ──────────────────────────────────
             printStep(8, "Output Directory");
             Path outputPath = resolveOutputDirectory(requestedOutputPath, config.getArtifactId());
             printConfirm("Output directory", outputPath.toString());
@@ -137,38 +138,45 @@ public class WizardRunner
 
 
             out.println();
-            out.print(ansi().fgBrightBlack().a("  ⟳ Generating project from start.spring.io...\n").reset());
+            out.println(TerminalUi.faint("  ⟳ Generating project from start.spring.io..."));
             out.flush();
 
             Path target = Path.of(config.getOutputDirectory()).toAbsolutePath();
             generatorService.generate(config, target);
 
-            // Ensure the chosen configuration format is reflected on disk
             EnvFileWriter.normalizeConfigFormat(target, config.isUseYaml());
 
             out.println(ansi().cursorUpLine().eraseLine()
-                            .fgBrightGreen().a("  ✔ Project generated → " + target).reset());
+                            .fgGreen().a("  ✔ Project generated at " + target).reset());
 
-            // ── Post-processing ───────────────────────────────────────────
             if (config.isCreateEnvFiles()) {
                 EnvFileWriter.writeEnvFiles(target, config.isUseYaml());
-                out.println(ansi().fgBrightGreen()
+                out.println(ansi().fgGreen()
                                 .a("  ✔ Created .env and .env.example").reset());
             }
 
             if (config.isInitGit()) {
-                out.print(ansi().fgBrightBlack().a("  ⟳ Initializing git repository...\n").reset());
+                out.println(TerminalUi.faint("  ⟳ Initializing git repository..."));
                 out.flush();
-                GitInitializer.init(target);
-                out.println(ansi().cursorUpLine().eraseLine()
-                                .fgBrightGreen().a("  ✔ Git repository initialized").reset());
+                try
+                {
+                    GitInitializer.init(target);
+                    out.println(ansi().cursorUpLine().eraseLine()
+                                    .fgGreen().a("  ✔ Git repository initialized").reset());
+                }
+                catch (Exception e)
+                {
+                    out.println(ansi().fgYellow()
+                                    .a("  ⚠ Git initialization failed (" + e.getMessage() + "), continuing without Git.")
+                                    .reset());
+                }
             }
 
-            printSummary(config, target);
+            TerminalUi.printProjectSummary(out, config, target);
             updateService.printNoticeIfAvailable(out);
 
         } finally {
-            AnsiConsole.systemUninstall();
+            TerminalUi.uninstallConsole();
         }
     }
 
@@ -182,10 +190,6 @@ public class WizardRunner
         return parent.resolve(artifactId).toAbsolutePath().normalize();
     }
 
-    /**
-     * Runs one wizard step that is a plain single-choice prompt: prints the
-     * step header, asks the user to pick an option, and confirms the choice.
-     */
     private Option askOption(int step, String label, InitializrMetadata.SelectGroup<Option> group)
     {
         printStep(step, label);
@@ -210,7 +214,6 @@ public class WizardRunner
         return stableOnly.isEmpty() ? allBootVersions : stableOnly;
     }
 
-    //Flatten all dependency groups into a single list, tagging each Dependency with its category.
     private List<Dependency> flattenDependencies(InitializrMetadata meta)
     {
         List<Dependency> flat = new ArrayList<>();
@@ -233,75 +236,41 @@ public class WizardRunner
     private void printBanner()
     {
         out.println();
-        out.println(ansi().bold().fgBrightGreen().a(
-                "   ███████╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ███████╗███████╗███████╗██████╗ "
-        ).reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                "   ██╔════╝██╔══██╗██╔══██╗██║████╗  ██║██╔════╝     ██╔════╝██╔════╝██╔════╝██╔══██╗"
-        ).reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                "   ███████╗██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗    ███████╗█████╗  █████╗  ██║  ██║"
-        ).reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                "   ╚════██║██╔═══╝ ██╔══██╗██║██║╚██╗██║██║   ██║    ╚════██║██╔══╝  ██╔══╝  ██║  ██║"
-        ).reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                "   ███████║██║     ██║  ██║██║██║ ╚████║╚██████╔╝    ███████║███████╗███████╗██████╔╝"
-        ).reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                "   ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚══════╝     ╚══════╝╚══════╝╚══════╝╚═════╝ "
-        ).reset());
-
-        out.println();
-
-        // Decorative separator
-        out.println(ansi().fgBrightBlack().a(
-                "   ───────────────────────────────────────────────────────────────────────────────"
-        ).reset());
-
         out.println(ansi().bold().fgGreen().a(
-                "                        Seed Your Spring Projects faster \uD83C\uDF31!"
+                "  ███████╗███████╗███████╗██████╗"
         ).reset());
-
+        out.println(ansi().bold().fgGreen().a(
+                "  ██╔════╝██╔════╝██╔════╝██╔══██╗"
+        ).reset());
+        out.println(ansi().bold().fgGreen().a(
+                "  ███████╗█████╗  █████╗  ██║  ██║"
+        ).reset());
+        out.println(ansi().bold().fgGreen().a(
+                "  ╚════██║██╔══╝  ██╔══╝  ██║  ██║"
+        ).reset());
+        out.println(ansi().bold().fgGreen().a(
+                "  ███████║███████╗███████╗██████╔╝"
+        ).reset());
+        out.println(ansi().bold().fgGreen().a(
+                "   ╚══════╝╚══════╝╚══════╝╚═════╝"
+        ).reset());
+        out.println(TerminalUi.faint(
+                "  ───────────────────────────────────"));
+        out.println(ansi().bold().fgGreen().a(
+                "  Spring Boot project scaffolding CLI").reset());
+        out.println();
     }
 
     private void printStep(int num, String label)
     {
         out.println();
-        out.println(ansi().bold().fgBrightCyan()
-                        .a("  ┌── Step " + num + ": " + label + " ").reset());
+        out.println(ansi().bold().fgCyan()
+                        .a("  Step " + num + ": " + label).reset());
     }
 
     private void printConfirm(String label, String value)
     {
-        out.println(ansi().fgBrightGreen()
+        out.println(ansi().fgGreen()
                         .a("  ✔ " + label + ": ").bold().a(value).reset());
-    }
-
-    private void printSummary(ProjectConfig config, Path target)
-    {
-        out.println();
-        out.println(ansi().bold().fgBrightGreen().a(
-                        "  ╔══════════════════════════════════════════════╗").reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                        "  ║          🌱  Project Created!                ║").reset());
-        out.println(ansi().bold().fgBrightGreen().a(
-                        "  ╚══════════════════════════════════════════════╝").reset());
-        out.println();
-        out.println(ansi().fgBrightCyan().a("  Location   : ").reset().bold().a(target));
-        out.println(ansi().fgBrightCyan().a("  Type       : ").reset().a(config.getType()));
-        out.println(ansi().fgBrightCyan().a("  Language   : ").reset().a(config.getLanguage()));
-        out.println(ansi().fgBrightCyan().a("  Spring Boot: ").reset().a(config.getBootVersion()));
-        out.println(ansi().fgBrightCyan().a("  Group      : ").reset().a(config.getGroupId()));
-        out.println(ansi().fgBrightCyan().a("  Artifact   : ").reset().a(config.getArtifactId()));
-        out.println(ansi().fgBrightCyan().a("  Java       : ").reset().a(config.getJavaVersion()));
-        if (!config.getDependencies().isEmpty())
-        {
-            out.println(ansi().fgBrightCyan().a("  Dependencies       : ").reset()
-                            .a(String.join(", ", config.getDependencies())));
-        }
-        out.println();
-        out.println(ansi().bold().fgBrightGreen().a("  Happy coding!").reset());
-        out.println();
     }
 }

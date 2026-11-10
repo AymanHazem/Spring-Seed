@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FuzzyMatcherTest {
 
     private static Dependency makeDep(String id, String name, String desc) {
-        // Create via Jackson ObjectMapper to respect our POJO design
+        // Dependency has no public setters; build via Jackson.
         try {
             String json = String.format("{\"id\":\"%s\",\"name\":\"%s\",\"description\":\"%s\"}", id, name, desc);
             return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json, Dependency.class);
@@ -30,7 +30,7 @@ class FuzzyMatcherTest {
 
     @Test
     void exactIdMatchReturnsHighestScore() {
-        int score = FuzzyMatcher.score(DEPS.get(0), "web");
+        int score = FuzzyMatcher.score(DEPS.getFirst(), "web");
         assertEquals(100, score, "Exact id match should score 100");
     }
 
@@ -56,13 +56,13 @@ class FuzzyMatcherTest {
 
     @Test
     void descriptionContainsQueryScores20() {
-        int score = FuzzyMatcher.score(DEPS.get(0), "restful");
+        int score = FuzzyMatcher.score(DEPS.getFirst(), "restful");
         assertEquals(20, score);
     }
 
     @Test
     void noMatchScoresZero() {
-        int score = FuzzyMatcher.score(DEPS.get(0), "xyzzy");
+        int score = FuzzyMatcher.score(DEPS.getFirst(), "xyzzy");
         assertEquals(0, score);
     }
 
@@ -70,7 +70,6 @@ class FuzzyMatcherTest {
     void searchReturnsSortedResults() {
         List<Dependency> results = FuzzyMatcher.search(DEPS, "spring");
         assertFalse(results.isEmpty());
-        // All results should match "spring" in some way
         assertTrue(results.size() >= 3);
     }
 
@@ -90,6 +89,6 @@ class FuzzyMatcherTest {
     void kafkaSearchFindsKafkaDep() {
         List<Dependency> results = FuzzyMatcher.search(DEPS, "kafka");
         assertFalse(results.isEmpty());
-        assertEquals("kafka", results.get(0).getId());
+        assertEquals("kafka", results.getFirst().getId());
     }
 }

@@ -2,6 +2,7 @@ package dev.ayman.seed.wizard;
 
 import dev.ayman.seed.model.Option;
 import dev.ayman.seed.model.ProjectType;
+import dev.ayman.seed.util.TerminalUi;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,10 +15,6 @@ import java.util.function.Predicate;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
-/**
- * A reusable single-selection prompt that works with any list of items.
- * Renders numbered options with ANSI colors, reads user input, validates it.
- */
 public class SelectionPrompt
 {
     private final BufferedReader in;
@@ -43,15 +40,15 @@ public class SelectionPrompt
                 Option::isUnstable);
     }
 
-    /**
-     * Shared single-selection flow: renders numbered options (unstable ones in
-     * yellow), then reads a validated 1-based choice; empty input picks the default.
-     */
     private <T> T select(String label, List<T> options, String defaultId,
             Function<T, String> idOf, Function<T, String> nameOf,
             Function<T, String> descriptionOf, Predicate<T> isUnstable)
     {
-        out.println(ansi().bold().fgBrightCyan().a("\n  ┌─ " + label + " ──────────────────────────────").reset());
+        if (options == null || options.isEmpty())
+            throw new IllegalStateException("No options available for " + label);
+
+        String headerRule = "─".repeat(Math.max(4, 52 - label.length()));
+        out.println(ansi().bold().fgCyan().a("\n  ┌─ " + label + " " + headerRule).reset());
         for (int i = 0; i < options.size(); i++)
         {
             T opt = options.get(i);
@@ -60,7 +57,7 @@ public class SelectionPrompt
                     : nameOf.apply(opt);
             printOption(i + 1, nameDisplay, descriptionOf.apply(opt), idOf.apply(opt).equals(defaultId));
         }
-        out.println(ansi().fgBrightCyan().a("  └──────────────────────────────────────────── ").reset());
+        out.println(ansi().fgCyan().a("  └" + "─".repeat(55)).reset());
 
         int idx = readChoice(options.size(), defaultId, options.stream()
                 .map(idOf).toList());
@@ -71,8 +68,8 @@ public class SelectionPrompt
     {
         while (true)
         {
-            out.print(ansi().bold().fgBrightYellow().a("\n  ? ").reset()
-                    .a(question).fgBrightBlack().a(" [Y/n] ").reset());
+            out.print(ansi().bold().fgYellow().a("\n  ? ").reset()
+                    .a(question) + TerminalUi.faint(" [Y/n] "));
             out.flush();
 
             String line = readLine();
@@ -93,10 +90,10 @@ public class SelectionPrompt
     private void printOption(int num, String name, String description, boolean isDefault)
     {
         String marker = isDefault
-                ? ansi().fgBrightGreen().bold().a("  ► ").reset().toString()
-                : ansi().fgBrightBlack().a("    ").reset().toString();
-        String numStr = ansi().fgBrightBlack().a("[" + num + "] ").reset().toString();
-        String def = isDefault ? ansi().fgBrightGreen().a(" (default)").reset().toString() : "";
+                ? ansi().fgGreen().bold().a("  ► ").reset().toString()
+                : "    ";
+        String numStr = TerminalUi.faint("[" + num + "] ");
+        String def = isDefault ? ansi().fgGreen().a(" (default)").reset().toString() : "";
 
         out.print(marker + numStr + name + def);
 
@@ -105,20 +102,16 @@ public class SelectionPrompt
             String shortDesc = description.length() > 70
                     ? description.substring(0, 70) + "…"
                     : description;
-            out.print(ansi().fgBrightBlack().a(" — " + shortDesc).reset());
+            out.print(TerminalUi.faint(": " + shortDesc));
         }
         out.println();
     }
 
-    /**
-     * Reads user choice (1-based index), returns 0-based index.
-     * Accepts empty input → uses default.
-     */
     private int readChoice(int count, String defaultId, List<String> ids)
     {
         while (true)
         {
-            out.print(ansi().fgBrightYellow().a("  Enter choice [1-" + count + "]: ").reset());
+            out.print(ansi().bold().a("  Enter choice [1-" + count + "]: ").reset());
             out.flush();
 
             String line = readLine().trim();
@@ -139,7 +132,7 @@ public class SelectionPrompt
                 }
                 catch (NumberFormatException ignored)
                 {
-                    // Report the overlong numeric value as an invalid choice below.
+                    // Fall through to invalid-choice prompt on int overflow.
                 }
             }
 

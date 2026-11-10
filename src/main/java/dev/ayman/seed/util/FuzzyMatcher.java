@@ -8,7 +8,6 @@ public class FuzzyMatcher
 {
     private FuzzyMatcher() {}
 
-     // Filter and rank dependencies by query relevance.
     public static List<Dependency> search(List<Dependency> dependencies, String query) {
         if (query == null || query.isBlank())
             return new ArrayList<>(dependencies);
@@ -25,9 +24,6 @@ public class FuzzyMatcher
                 .toList();
     }
 
-    /**
-     * Compute a match score for a single dependency against a lowercase query.
-     */
     public static int score(Dependency dep, String query)
     {
         String id = dep.getId() == null ? "" : dep.getId().toLowerCase();
@@ -45,7 +41,6 @@ public class FuzzyMatcher
 
         String[] tokens = name.split("[\\s\\-_]+");
 
-        // Token-based name match
         for (String token : tokens)
         {
             if (token.startsWith(query))
@@ -55,7 +50,6 @@ public class FuzzyMatcher
         if (desc.contains(query))
             return 20;
 
-        // Levenshtein on individual name words
         for (String token : tokens)
         {
             if (token.length() >= 3 && levenshtein(token, query) <= 2)

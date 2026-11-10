@@ -92,7 +92,7 @@ class MetadataParserTest {
         assertNotNull(meta.getType());
         assertEquals("gradle-project", meta.getType().getDefaultValue());
         assertEquals(2, meta.getType().getValues().size());
-        assertEquals("Gradle - Groovy", meta.getType().getValues().get(0).getName());
+        assertEquals("Gradle - Groovy", meta.getType().getValues().getFirst().getName());
     }
 
     @Test
@@ -106,7 +106,6 @@ class MetadataParserTest {
     void parsesBootVersions() throws Exception {
         InitializrMetadata meta = mapper.readValue(FIXTURE_JSON, InitializrMetadata.class);
         assertEquals("4.0.3.RELEASE", meta.getBootVersion().getDefaultValue());
-        // SNAPSHOT version is flagged as unstable
         assertTrue(meta.getBootVersion().getValues().get(1).isUnstable());
         assertFalse(meta.getBootVersion().getValues().get(0).isUnstable());
     }
@@ -132,13 +131,13 @@ class MetadataParserTest {
         InitializrMetadata meta = mapper.readValue(FIXTURE_JSON, InitializrMetadata.class);
         assertNotNull(meta.getDependencies());
         assertEquals(2, meta.getDependencies().getValues().size());
-        assertEquals("Web", meta.getDependencies().getValues().get(0).getName());
-        assertEquals(2, meta.getDependencies().getValues().get(0).getValues().size());
+        assertEquals("Web", meta.getDependencies().getValues().getFirst().getName());
+        assertEquals(2, meta.getDependencies().getValues().getFirst().getValues().size());
     }
 
     @Test
     void projectTypeIsProjectFormat() throws Exception {
         InitializrMetadata meta = mapper.readValue(FIXTURE_JSON, InitializrMetadata.class);
-        assertTrue(meta.getType().getValues().get(0).isProjectFormat());
+        assertTrue(meta.getType().getValues().getFirst().isProjectFormat());
     }
 }

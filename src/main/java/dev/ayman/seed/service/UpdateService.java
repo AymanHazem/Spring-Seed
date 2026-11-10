@@ -19,8 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.fusesource.jansi.Ansi.ansi;
 
 /**
- * Service for checking and notifying about Spring Seed CLI updates from GitHub Releases.
- * Supports non-blocking background checks (24-hour cache) and explicit checks.
+ * Checks GitHub Releases for Seed updates using a 24-hour local cache.
  */
 public class UpdateService
 {
@@ -61,9 +60,6 @@ public class UpdateService
         this.currentVersion = currentVersion != null ? currentVersion : SeedCli.VERSION;
     }
 
-    /**
-     * Checks if update checking is disabled via environment variables.
-     */
     public boolean isCheckDisabled()
     {
         String noUpdate = System.getenv("SEED_NO_UPDATE_CHECK");
@@ -71,13 +67,10 @@ public class UpdateService
             return true;
 
         String ci = System.getenv("CI");
-        return ci != null && ("true".equalsIgnoreCase(ci) || "1".equals(ci));
+        return ("true".equalsIgnoreCase(ci) || "1".equals(ci));
     }
 
-    /**
-     * Starts an asynchronous background check if not disabled and cache is stale.
-     * Guaranteed to be non-blocking and silent on failure.
-     */
+    /** Non-blocking background update check; failures are ignored silently. */
     public void startBackgroundCheck()
     {
         if (isCheckDisabled())
@@ -108,16 +101,11 @@ public class UpdateService
             }
             catch (Exception ignored)
             {
-                // Silently ignore all network / timeout errors in background
             }
             return null;
         });
     }
 
-    /**
-     * Returns the newer version if one is available from cache or finished background check.
-     * Non-blocking.
-     */
     public String getAvailableUpdateVersion()
     {
         if (latestFoundVersion != null)
@@ -135,9 +123,6 @@ public class UpdateService
         return null;
     }
 
-    /**
-     * Prints the update banner to the output writer if an update is available.
-     */
     public void printNoticeIfAvailable(PrintWriter out)
     {
         String newerVersion = getAvailableUpdateVersion();
@@ -147,9 +132,6 @@ public class UpdateService
         }
     }
 
-    /**
-     * Explicit check for updates (used by 'seed update').
-     */
     public CheckResult checkExplicitly(boolean forceRefresh)
     {
         if (!forceRefresh)
@@ -182,9 +164,6 @@ public class UpdateService
         }
     }
 
-    /**
-     * Fetches the latest release tag from GitHub API.
-     */
     public String fetchLatestVersionFromGitHub() throws IOException, InterruptedException
     {
         HttpRequest request = HttpRequest.newBuilder()
@@ -219,9 +198,6 @@ public class UpdateService
         return null;
     }
 
-    /**
-     * Compares two versions. Returns true if remote is strictly newer than current.
-     */
     public static boolean isNewer(String remote, String current)
     {
         if (remote == null || remote.isBlank())
@@ -253,12 +229,7 @@ public class UpdateService
         }
 
         // If numeric parts are identical, release version is newer than pre-release/snapshot
-        if (cleanCurrent.contains("-") && !cleanRemote.contains("-"))
-        {
-            return true;
-        }
-
-        return false;
+        return cleanCurrent.contains("-") && !cleanRemote.contains("-");
     }
 
     private static int parseSafeInt(String s)
@@ -314,19 +285,15 @@ public class UpdateService
         }
     }
 
-    /**
-     * Formats and prints the friendly update notice to out.
-     */
     public static void printNotice(PrintWriter out, String currentVer, String latestVer)
     {
         String from = currentVer.startsWith("v") ? currentVer : "v" + currentVer;
         String to = latestVer.startsWith("v") ? latestVer : "v" + latestVer;
 
         out.println();
-        out.println(ansi().bold().fgBrightYellow().a("  ╭────────────────────────────────────────────────────────────────────────────╮").reset());
-        out.println(ansi().bold().fgBrightYellow().a("  │  ").bold().fgBrightGreen().a("Update available! ").bold().a(from).bold().fgBrightYellow().a(" → ").bold().fgBrightGreen().a(to).reset());
-        out.println(ansi().bold().fgBrightYellow().a("  │  ").fgBrightCyan().a("Run: ").reset().a(INSTALL_COMMAND + " to update.").reset());
-        out.println(ansi().bold().fgBrightYellow().a("  ╰────────────────────────────────────────────────────────────────────────────╯").reset());
+        out.println(ansi().bold().fgYellow().a("  Update available! ").reset()
+                .bold().a(from).fgYellow().a(" -> ").fgGreen().a(to).reset());
+        out.println(ansi().fgCyan().a("  Run: ").reset().a(INSTALL_COMMAND + " to update.").reset());
         out.println();
         out.flush();
     }

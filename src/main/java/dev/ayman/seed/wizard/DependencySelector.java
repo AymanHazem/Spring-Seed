@@ -2,6 +2,7 @@ package dev.ayman.seed.wizard;
 
 import dev.ayman.seed.model.Dependency;
 import dev.ayman.seed.util.FuzzyMatcher;
+import dev.ayman.seed.util.TerminalUi;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -40,7 +41,7 @@ public class DependencySelector
         {
             printResults(filtered);
             printSelectedChips();
-            out.print(ansi().fgBrightYellow().a("  Search: ").reset().a(lastQuery).toString());
+            out.print(ansi().bold().a("  Search: ").reset().a(lastQuery).toString());
             out.flush();
 
             String line = in.readLine();
@@ -58,7 +59,6 @@ public class DependencySelector
                 filtered = initialFeaturedList();
                 continue;
             }
-            // If user types a number, toggle that result
             if (line.matches("\\d+"))
             {
                 try
@@ -71,16 +71,12 @@ public class DependencySelector
                             selectedIds.add(id);
                     }
                 }
-                catch (NumberFormatException e)
+                catch (NumberFormatException ignored)
                 {
-                    // The input matched \d+ but overflowed int (e.g. a 15+ digit
-                    // string) — treat it as an out-of-range choice instead of
-                    // crashing the whole wizard.
+                    // Digit strings overflowing int should report invalid choice instead of crashing.
                     out.println(ansi().fgRed().a("  ✗ Invalid choice: " + line).reset());
                 }
-                // After toggling, clear the search field so it doesn't visually
-                // accumulate with whatever the user types next, and go back to the
-                // featured list.
+                // Clear the query after toggling so the next prompt starts fresh.
                 lastQuery = "";
                 filtered = initialFeaturedList();
             }
@@ -95,11 +91,6 @@ public class DependencySelector
         return new ArrayList<>(selectedIds);
     }
 
-    /**
-     * Returns a small, curated list of featured dependencies to show when there
-     * is no active search query. We prioritize commonly used ones such as Web,
-     * Lombok, and DevTools.
-     */
     private List<Dependency> initialFeaturedList() {
         List<Dependency> featured = new ArrayList<>();
         for (Dependency dep : allDependencies)
@@ -108,7 +99,6 @@ public class DependencySelector
             if ("web".equals(id) || "lombok".equals(id) || "devtools".equals(id))
                 featured.add(dep);
         }
-        // Fallback: if none of the expected IDs are present, just show the first page
         if (featured.isEmpty())
             featured.addAll(allDependencies.stream().limit(PAGE_SIZE).toList());
         return featured;
@@ -116,20 +106,20 @@ public class DependencySelector
 
     private void printBanner()
     {
-        out.println(ansi().bold().fgBrightCyan()
+        out.println(ansi().bold().fgCyan()
                 .a("  ╔══════════════════════════════════════════╗").reset());
-        out.println(ansi().bold().fgBrightCyan()
+        out.println(ansi().bold().fgCyan()
                 .a("  ║      Dependency Search & Selection       ║").reset());
-        out.println(ansi().bold().fgBrightCyan()
+        out.println(ansi().bold().fgCyan()
                 .a("  ╚══════════════════════════════════════════╝").reset());
         out.println(ansi().fgDefault()
-                .a("  Type to search  │  [number] to toggle  │  [Enter] to finish "));
+                .a("  Type to search  |  [number] to toggle  |  [Enter] to finish"));
         out.println();
     }
 
     private void printResults(List<Dependency> results)
     {
-        out.println(ansi().a("  ─────────────────────────────────────────────────────────"));
+        out.println("  ─────────────────────────────────────────────────────────");
         int limit = Math.min(PAGE_SIZE, results.size());
         for (int i = 0; i < limit; i++)
         {
@@ -137,15 +127,15 @@ public class DependencySelector
             boolean selected = selectedIds.contains(dep.getId());
 
             String checkbox = selected
-                    ? ansi().fgBrightGreen().bold().a(" ✔ ").reset().toString()
-                    : ansi().fgDefault().a(" ○ ").reset().toString();
+                    ? ansi().fgGreen().bold().a(" ✔ ").reset().toString()
+                    : " ○ ";
 
-            String num = ansi().fgBrightBlack().a(String.format("%2d", i + 1) + ". ").reset().toString();
+            String num = TerminalUi.faint(String.format("%2d. ", i + 1));
             String name = selected
-                    ? ansi().bold().fgBrightGreen().a(dep.getName()).reset().toString()
+                    ? ansi().bold().fgGreen().a(dep.getName()).reset().toString()
                     : ansi().bold().a(dep.getName()).reset().toString();
 
-            String id = ansi().fgBrightBlack().a(" [" + dep.getId() + "]").reset().toString();
+            String id = TerminalUi.faint(" [" + dep.getId() + "]");
 
             String cat = dep.getCategory() != null
                     ? ansi().fgCyan().a(" · " + dep.getCategory()).reset().toString()
@@ -158,25 +148,23 @@ public class DependencySelector
                 String shortDesc = dep.getDescription().length() > 80
                         ? dep.getDescription().substring(0, 80) + "…"
                         : dep.getDescription();
-                out.println(ansi().fgBrightBlack().a("       " + shortDesc).reset());
+                out.println(TerminalUi.faint("       " + shortDesc));
             }
         }
 
         if (results.size() > PAGE_SIZE)
-            out.println(ansi().fgBrightBlack()
-                    .a("  … " + (results.size() - PAGE_SIZE) + " more (refine search to narrow down)").reset());
+            out.println(TerminalUi.faint("  … " + (results.size() - PAGE_SIZE) + " more (refine search to narrow down)"));
 
         if (results.isEmpty())
             out.println(ansi().fgYellow().a("  No dependencies match your search.").reset());
 
-
-        out.println(ansi().a("  ─────────────────────────────────────────────────────────"));
+        out.println("  ─────────────────────────────────────────────────────────");
     }
 
     private void printSelectedChips()
     {
         if (selectedIds.isEmpty())
-            out.println(ansi().fgBrightBlack().a("  Selected: (none)").reset());
+            out.println(TerminalUi.faint("  Selected: (none)"));
 
         else
         {

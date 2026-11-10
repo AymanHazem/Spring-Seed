@@ -39,7 +39,6 @@ class DependencySelectorTest {
     @Test
     void searchFieldResetsAfterTogglingResultByNumber() throws Exception {
         StringWriter capturedOut = new StringWriter();
-        // Search "web", toggle the top result (#1), then finish with a blank line.
         DependencySelector selector = newSelector("web\n1\n\n", capturedOut);
 
         List<String> selected = selector.select();
@@ -60,7 +59,6 @@ class DependencySelectorTest {
     @Test
     void searchFieldStaysUsableForANewSearchAfterToggle() throws Exception {
         StringWriter capturedOut = new StringWriter();
-        // Search "web", toggle #1, then search again for "devtools", toggle #1, finish.
         DependencySelector selector = newSelector("web\n1\ndevtools\n1\n\n", capturedOut);
 
         List<String> selected = selector.select();
@@ -70,10 +68,7 @@ class DependencySelectorTest {
 
     @Test
     void overlongNumericInputDoesNotCrashTheSelector() throws Exception {
-        // Regression test: a digit string that overflows int (matches \d+ but
-        // fails Integer.parseInt) used to throw an uncaught NumberFormatException
-        // and crash the whole wizard. It should instead be treated as an
-        // out-of-range choice, and the selector should keep running normally.
+        // Digit strings overflowing int must not throw NumberFormatException.
         StringWriter capturedOut = new StringWriter();
         DependencySelector selector = newSelector("99999999999999999999\n1\n\n", capturedOut);
 

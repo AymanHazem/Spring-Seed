@@ -48,16 +48,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux x86_64 — also covers WSL2. Built on the oldest available
-          # Ubuntu so the binary links against an older glibc and runs on more distros.
+          # Linux x86_64 (also covers WSL2), built on older Ubuntu for broader glibc compatibility.
           - runner: ubuntu-22.04
             asset: seed-linux-amd64
           - runner: ubuntu-22.04-arm
             asset: seed-linux-arm64
-          # macOS Apple Silicon
           - runner: macos-latest
             asset: seed-darwin-arm64
-          # macOS Intel
           - runner: macos-15-intel
             asset: seed-darwin-amd64
 

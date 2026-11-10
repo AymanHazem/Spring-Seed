@@ -1,19 +1,19 @@
 <h1 align="center">🌱 Spring Seed</h1>
 
 <p align="center">
-  <strong>Plant your next Spring Boot application faster , right from your terminal.</strong>
+  <strong>Scaffold Spring Boot projects directly from your terminal.</strong>
 </p>
 
 ---
 
-**Spring Seed** is an interactive Cross-platform CLI tool for scaffolding Spring Boot projects with [Spring Initializr](https://start.spring.io). Choose your build system, language, Spring Boot version, dependencies, and project metadata without opening a browser. Seed downloads the project, prepares your configuration, and optionally sets up `.env` files and Git.
+**Spring Seed** is an interactive CLI tool for Linux, macOS, and WSL that scaffolds Spring Boot projects with [Spring Initializr](https://start.spring.io). Choose your build system, language, Spring Boot version, dependencies, and project metadata without opening a browser. Seed downloads the project, prepares your configuration, and optionally sets up `.env` files and Git.
 
 ---
 ## Features
 
 | Feature | Description |
 |---|---|
-| **Non-interactive / Flags mode** | Scaffold projects instantly with one command (e.g. `seed init my-app -d web,data-jpa --java 21`). |
+| **Non-interactive / Flags mode** | Scaffold projects in one command (e.g. `seed init my-app -d web,data-jpa --java 21`). |
 | **Automatic update checks** | Lightweight 24-hour background check notifying you when a new release is available, or manually via `seed update`. |
 | **Interactive wizard** | Numbered prompts for project type, language, Spring Boot version, metadata, packaging, and Java version. |
 | **Fuzzy dependency search** | Search dependency names, IDs, and descriptions, with typo-tolerant matching and multi-selection. |
@@ -31,7 +31,7 @@
 
 - Linux (x86_64 / arm64), macOS (Apple Silicon / Intel), or WSL
 - Internet access
-- Git installed and configured (Optional , Just for git init phase)
+- Git installed and configured (optional, only for Git initialization)
 
 No Java installation is needed: Seed ships as a self-contained native binary.
 
@@ -86,7 +86,7 @@ seed --version
 
 https://github.com/user-attachments/assets/5fcc9d53-3d83-452a-86fc-dced7e001a88
 
-### CLI Options
+## CLI Options
 
 ```bash
 seed                                       # Start the interactive wizard
@@ -101,7 +101,7 @@ seed --help                                # Show help
 
 ### Non-Interactive Mode (One-Shot Project Generation)
 
-Scaffold a project instantly without prompts using `seed init` (or standard aliases `new`, `create`, or root options):
+Scaffold a project without prompts using `seed init` (or aliases `new`, `create`, or root options):
 
 ```bash
 # Quick start: artifact name + dependencies
@@ -143,18 +143,19 @@ seed init legacy-service -d web --properties
 |---|---|---|---|
 | `<artifact>` | | *metadata default* | Project artifact name (creates `./<artifact>`). |
 | `-d`, `--dependencies`, `--deps` | `-d` | | Comma-separated dependencies (e.g. `web,data-jpa,postgresql`). |
-| `-t`, `--type` | `-t` | Initializr default (`gradle-project`) | Project type (`gradle-project`, `maven-project`, or shortcuts `maven`, `gradle`). |
-| `-j`, `--java` | `-j` | Initializr default (`17`) | Java version (`17`, `21`, `25`, etc.). |
-| `-b`, `--boot-version` | `-b` | Initializr default | Spring Boot version. |
-| `-l`, `--language` | `-l` | Initializr default (`java`) | Language (`java`, `kotlin`, `groovy`). |
-| `-g`, `--group-id` | `-g` | Initializr default (`com.example`) | Group ID. |
+| `-t`, `--type`, `--build` | `-t` | *metadata default* | Project type (`gradle-project`, `gradle-project-kotlin`, `maven-project`, or shortcuts `maven`, `gradle`, `gradle-kotlin`, `gradle-kts`). |
+| `-j`, `--java`, `--java-version` | `-j` | *metadata default* | Java version (`17`, `21`, `25`, etc.). |
+| `-b`, `--boot`, `--boot-version` | `-b` | *metadata default* | Spring Boot version. |
+| `-l`, `--lang`, `--language` | `-l` | *metadata default* | Language (`java`, `kotlin`, `groovy`). |
+| `-g`, `--group`, `--group-id` | `-g` | *metadata default* | Group ID. |
 | `-n`, `--name` | `-n` | same as artifact | Project name. |
+| `--description` | | *metadata default* | Project description. |
 | `--package-name` | | `<groupId>.<artifact>` | Package name. |
-| `--packaging` | | Initializr default (`jar`) | Packaging (`jar`, `war`). |
-| `-v`, `--project-version` | `-v` | Initializr default (`0.0.1-SNAPSHOT`) | Project version. |
+| `--packaging` | | *metadata default* | Packaging (`jar`, `war`). |
+| `-v`, `--project-version` | `-v` | *metadata default* | Project version. |
 | `-p`, `--path` | `-p` | `.` (current directory) | Parent directory for the generated project. |
-| `--yaml` / `--no-yaml` | | `--yaml` (enabled) | Generate `application.yml` instead of `.properties`. |
-| `--properties` | | | Use standard `application.properties`. |
+| `--yaml` | | enabled | Generate `application.yml` instead of `.properties`. |
+| `--properties`, `--no-yaml` | | | Generate `application.properties` instead of `application.yml`. |
 | `--env` / `--no-env` | | `false` | Generate `.env` and `.env.example` templates. |
 | `--git` / `--no-git` | | `false` | Initialize a Git repository with an initial commit. |
 
@@ -300,7 +301,8 @@ src/
 │   │   └── util/
 │   │       ├── EnvFileWriter.java        # Config format, .env, and .gitignore setup
 │   │       ├── FuzzyMatcher.java         # Dependency relevance ranking
-│   │       └── GitInitializer.java       # Repository and initial commit setup
+│   │       ├── GitInitializer.java       # Repository and initial commit setup
+│   │       └── TerminalUi.java           # Console color/NO_COLOR setup and summary output
 │   └── resources/META-INF/native-image/  # GraalVM reflection configuration
 └── test/java/dev/ayman/seed/              # JUnit tests
 ```
@@ -310,10 +312,4 @@ Seed uses **Picocli** for CLI parsing, **Jackson** for JSON, **Jansi** for termi
 ---
 ## License
 
-Spring Seed is available under the [MIT License](LICENSE).
-
----
-
-<p align="center">
-  <strong>Built with ☕ and 🌱 by <a href="https://github.com/AymanHazem">Ayman Hazem</a></strong>
-</p>
+Spring Seed is available under the [MIT License](LICENSE). Author: [Ayman Hazem](https://github.com/AymanHazem).

@@ -92,7 +92,6 @@ class UpdateServiceTest
         assertEquals("v1.2.0", read.getLatestVersion());
         assertTrue(service.isCacheFresh(read));
 
-        // Test stale cache (older than 24 hours)
         long oldTime = System.currentTimeMillis() - (25 * 3600 * 1000L);
         read.setLastChecked(oldTime);
         assertFalse(service.isCacheFresh(read));
@@ -109,7 +108,6 @@ class UpdateServiceTest
         assertEquals("v1.2.0", result.latestVersion());
         assertEquals(1, service.networkCallsCount);
 
-        // Verify it was written to cache
         UpdateInfo cached = service.readCache();
         assertNotNull(cached);
         assertEquals("v1.2.0", cached.getLatestVersion());
@@ -132,7 +130,6 @@ class UpdateServiceTest
         FakeUpdateService service = new FakeUpdateService(cacheFile, "1.1.0", "v1.5.0");
         service.writeCache(new UpdateInfo(System.currentTimeMillis(), "v1.2.5"));
 
-        // No network call should occur because fresh cache is present
         UpdateService.CheckResult result = service.checkExplicitly(false);
 
         assertEquals(UpdateService.CheckStatus.UPDATE_AVAILABLE, result.status());
@@ -177,5 +174,6 @@ class UpdateServiceTest
         assertTrue(output.contains("v1.1.0"));
         assertTrue(output.contains("v1.2.0"));
         assertTrue(output.contains("install.sh | sh to update."));
+        assertFalse(output.contains("╭"), "notice should not use a fixed-width box that overflows on 80-col terminals");
     }
 }
