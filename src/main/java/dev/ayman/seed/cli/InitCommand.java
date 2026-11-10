@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 
 @Command(name = "init", aliases = {"new", "create"},
         description = "Scaffold a Spring Boot project non-interactively using flags",
+        version = "seed 1.1.0",
         mixinStandardHelpOptions = true)
 public class InitCommand implements Callable<Integer>
 {

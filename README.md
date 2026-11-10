@@ -1,12 +1,12 @@
 <h1 align="center">🌱 Spring Seed</h1>
 
 <p align="center">
-  <strong>Plant your next Spring Boot application faster — right from your terminal.</strong>
+  <strong>Plant your next Spring Boot application faster , right from your terminal.</strong>
 </p>
 
 ---
 
-**Spring Seed** is an interactive CLI for scaffolding Spring Boot projects with [Spring Initializr](https://start.spring.io). Choose your build system, language, Spring Boot version, dependencies, and project metadata without opening a browser. Seed downloads the project, prepares your configuration, and optionally sets up `.env` files and Git.
+**Spring Seed** is an interactive Cross-platform CLI tool for scaffolding Spring Boot projects with [Spring Initializr](https://start.spring.io). Choose your build system, language, Spring Boot version, dependencies, and project metadata without opening a browser. Seed downloads the project, prepares your configuration, and optionally sets up `.env` files and Git.
 
 ---
 ## Features
@@ -47,7 +47,7 @@ Options (set as environment variables on the `sh` side of the pipe):
 
 ```bash
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | SEED_VERSION=v1.0.0 sh
+curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | SEED_VERSION=v1.1.0 sh
 
 # Install somewhere else, and don't touch shell rc files
 curl -fsSL https://raw.githubusercontent.com/AymanHazem/Spring-Seed/main/install.sh | SEED_INSTALL_DIR="$HOME/bin" SEED_NO_MODIFY_PATH=1 sh
@@ -77,7 +77,7 @@ Verify the installation:
 
 ```bash
 seed --version
-# seed 1.0.0
+# seed 1.1.0
 ```
 
 ---
@@ -106,6 +106,19 @@ Scaffold a project instantly without prompts using `seed init` (or standard alia
 ```bash
 # Quick start: artifact name + dependencies
 seed init order-service -d web,data-jpa,postgresql,lombok
+
+# Full options example
+seed init ecommerce-api \
+  --dependencies web,data-jpa,postgresql,security,lombok \
+  --type maven \
+  --java 21 \
+  --language java \
+  --group-id com.mycompany \
+  --name "E-Commerce Microservice" \
+  --project-version 1.0.0-SNAPSHOT \
+  --path ./test-projects \
+  --git \
+  --env
 
 # Specify Java version, build tool, and metadata
 seed init auth-service -d web,security -t maven-project -j 21 -g com.mycompany
@@ -149,12 +162,6 @@ seed init legacy-service -d web --properties
 > **Typo tolerance**: If you misspell a dependency (e.g. `-d postgres`), Seed automatically detects it and suggests the correct ID:
 > `✗ Error: Unknown dependency: 'postgres'. Did you mean 'postgresql'?`
 
-**Controls:**
-- Type a search query and press `Enter` to filter dependencies
-- Enter a displayed number to toggle a dependency on/off
-- Press `Enter` with empty input or type `:done` to confirm
-- Type `:clear` to reset selections
-
 ### Output directory behavior
 
 **`--path` specifies the parent directory, not the final project directory.** For an artifact named `my-app`:
@@ -188,12 +195,19 @@ The Java version selected in the wizard applies to the **generated application**
 
 The initial list features Web, Lombok, and DevTools when those IDs are available. Up to **12 results** are displayed per search; refine your query to find more specific matches. After toggling a dependency, the search resets to the featured list while retaining your selections.
 
-### Spring Boot versions and Gradle
+**Controls:**
+- Type a search query and press `Enter` to filter dependencies
+- Enter a displayed number to toggle a dependency on/off
+- Press `Enter` with empty input or type `:done` to confirm
+- Type `:clear` to reset selections
 
-For Gradle projects, Seed hides SNAPSHOT and milestone Spring Boot versions when other versions are available, as a workaround for upstream Initializr Gradle/BOM resolution failures. Maven keeps the full version list.
+### Automatic update checks
 
-If Initializr returns a generation error, Seed displays the server's error message. Gradle BOM resolution failures also include a suggestion to try Maven or retry later.
-
+Seed periodically checks for new releases on GitHub in the background:
+- **Periodic check**: Runs asynchronously once every 24 hours without slowing down command execution, caching state in `~/.cache/seed/update-check.json`. If a new version is available, a friendly upgrade banner is displayed.
+- **Manual check**: Run `seed update` (or `seed update --force` to bypass cache) anytime to verify your version against GitHub Releases.
+- **Opt-out**: Disable background checks in scripts or CI environments with `SEED_NO_UPDATE_CHECK=1` or `CI=true`.
+---
 ## Configuration and `.env` Support
 
 Choosing YAML converts generated property entries into `src/main/resources/application.yml` and removes `application.properties`. This format choice is applied whether or not you enable `.env` generation.
@@ -243,11 +257,11 @@ spring:
 
 Keep real credentials in `.env`, and share only placeholder values in `.env.example`.
 
+---
 ## Metadata Cache
 
 | Setting | Value |
 |---|---|
-| Metadata endpoint | `https://start.spring.io/metadata/client` |
 | Cache file | `~/.cache/seed/metadata.json` |
 | Freshness period | **1 hour**, based on the cache file's modification time |
 | Force refresh | `seed --refresh` or `seed -r` |
@@ -265,11 +279,17 @@ If a refresh fails and valid cached metadata is available, Seed falls back to th
 src/
 ├── main/
 │   ├── java/dev/ayman/seed/
-│   │   ├── SeedCli.java                  # Picocli entry point and exit handling
-│   │   ├── model/                        # Initializr metadata models
+│   │   ├── SeedCli.java                  # Picocli entry point and CLI dispatch
+│   │   ├── cli/
+│   │   │   ├── InitCommand.java          # Non-interactive CLI command (aliases: new, create)
+│   │   │   ├── NonInteractiveRunner.java # Scaffolds projects via CLI options
+│   │   │   ├── ProjectOptions.java       # Picocli options mixin for project generation
+│   │   │   └── UpdateCommand.java        # Manual update check command
+│   │   ├── model/                        # Initializr metadata and update models
 │   │   ├── service/
 │   │   │   ├── MetadataService.java      # Fetch, validate, cache, and fallback
-│   │   │   └── ProjectGeneratorService.java # Download and extract project ZIPs
+│   │   │   ├── ProjectGeneratorService.java # Download and extract project ZIPs
+│   │   │   └── UpdateService.java        # GitHub Releases check, SemVer, and 24h caching
 │   │   ├── wizard/
 │   │   │   ├── WizardRunner.java         # Interactive flow and output resolution
 │   │   │   ├── DependencySelector.java   # Dependency search and multi-selection

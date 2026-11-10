@@ -12,6 +12,7 @@ import static org.fusesource.jansi.Ansi.ansi;
 
 @Command(name = "update", aliases = {"check-update"},
         description = "Check for available Spring Seed updates from GitHub Releases",
+        version = "seed 1.1.0",
         mixinStandardHelpOptions = true)
 public class UpdateCommand implements Callable<Integer>
 {
