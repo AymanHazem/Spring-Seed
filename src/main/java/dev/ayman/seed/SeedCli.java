@@ -16,7 +16,7 @@ import java.util.concurrent.Callable;
 /**
  * Entry point for the Seed CLI.
  */
-@Command(name = "seed", version = "seed 1.1.0", mixinStandardHelpOptions = true,
+@Command(name = "seed", version = "seed 1.1.1", mixinStandardHelpOptions = true,
         subcommands = { InitCommand.class, UpdateCommand.class, CommandLine.HelpCommand.class },
         description = {
                 "",
@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
         })
 public class SeedCli implements Callable<Integer>
 {
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.1.1";
 
     @Option(names = { "-r", "--refresh" }, description = "Force refresh the cached metadata from start.spring.io")
     private boolean refresh;

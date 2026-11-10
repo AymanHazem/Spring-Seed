@@ -1,5 +1,6 @@
 package dev.ayman.seed.cli;
 
+import dev.ayman.seed.SeedCli;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -8,7 +9,7 @@ import java.util.concurrent.Callable;
 
 @Command(name = "init", aliases = {"new", "create"},
         description = "Scaffold a Spring Boot project non-interactively using flags",
-        version = "seed 1.1.0",
+        version = "seed " + SeedCli.VERSION,
         mixinStandardHelpOptions = true)
 public class InitCommand implements Callable<Integer>
 {

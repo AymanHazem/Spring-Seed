@@ -1,5 +1,6 @@
 package dev.ayman.seed.cli;
 
+import dev.ayman.seed.SeedCli;
 import dev.ayman.seed.service.UpdateService;
 import dev.ayman.seed.util.TerminalUi;
 import picocli.CommandLine.Command;
@@ -12,7 +13,7 @@ import static org.fusesource.jansi.Ansi.ansi;
 
 @Command(name = "update", aliases = {"check-update"},
         description = "Check for available Spring Seed updates from GitHub Releases",
-        version = "seed 1.1.0",
+        version = "seed " + SeedCli.VERSION,
         mixinStandardHelpOptions = true)
 public class UpdateCommand implements Callable<Integer>
 {
