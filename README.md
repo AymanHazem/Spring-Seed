@@ -77,7 +77,7 @@ Verify the installation:
 
 ```bash
 seed --version
-# seed 1.1.1
+# seed 1.1.2
 ```
 
 ---
