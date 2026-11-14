@@ -84,8 +84,7 @@ seed --version
 
 ## Demo
 
-https://github.com/user-attachments/assets/5fcc9d53-3d83-452a-86fc-dced7e001a88
-
+https://github.com/user-attachments/assets/06cabff2-bb03-4d45-baac-faf4c36ab518
 ## CLI Options
 
 ```bash
